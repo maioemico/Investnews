@@ -111,7 +111,7 @@ function App() {
     source: selectedSource,
     category: selectedCategory,
     feedCategory: selectedFeedCategory
-  })
+  }) || [] 
 
   const topNews = filteredNews.filter(article => article.relevanceScore >= 90)
   const regularNews = filteredNews.filter(article => article.relevanceScore < 90)
