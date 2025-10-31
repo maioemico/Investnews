@@ -254,25 +254,34 @@ function App() {
         {/* Category Selection */}
         <div className="mb-6">
           <div className="flex flex-wrap gap-4 justify-startr">
-            {['Nacional', 'Internacional', 'Criptomoedas'].map((category) => (
-              <Button
-                key={category}
-                onClick={() => setSelectedFeedCategory(category)}
-                className={`flex items-center space-x-2 px-6 py-3 text-lg font-semibold transition-all duration-200 ${
-                  selectedFeedCategory === category
-                    ? getCategoryColor(category) + ' shadow-lg scale-105'
-                    : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {getCategoryIcon(category)}
-                <span>{category}</span>
-                {stats && stats.byFeedCategory[category] && (
-                  <Badge variant="secondary" className="ml-2">
-                    {stats.byFeedCategory[category]}
-                  </Badge>
-                )}
-              </Button>
-            ))}
+{['Nacional', 'Internacional', 'Criptomoedas'].map((category) => (
+  <div key={category} className="flex items-center space-x-2">
+    <Button
+      onClick={() => setSelectedFeedCategory(category)}
+      // Adicione w-36 (largura fixa) e remova o Badge de dentro
+      className={`flex items-center space-x-2 w-36 justify-start px-6 py-3 text-lg font-semibold transition-all duration-200 ${
+        selectedFeedCategory === category
+          ? getCategoryColor(category) + ' shadow-lg scale-105'
+          : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+      }`}
+    >
+      {getCategoryIcon(category)}
+      <span>{category}</span>
+      {/* O Badge foi removido daqui */}
+    </Button>
+    
+    {/* O Badge de contagem agora está FORA do botão */}
+    {stats && stats.byFeedCategory[category] && (
+      <Badge 
+        variant="secondary" 
+        className="text-sm font-bold bg-gray-300 text-gray-800"
+      >
+        {stats.byFeedCategory[category]}
+      </Badge>
+    )}
+  </div>
+))}
+
           </div>
         </div>
 
