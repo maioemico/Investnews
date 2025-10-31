@@ -25,6 +25,9 @@ import {
 import newsService from './services/newsService.js'
 import './App.css'
 
+import NewsService from './services/newsService';
+const newsService = new NewsService();
+
 function App() {
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
