@@ -253,7 +253,7 @@ function App() {
 
         {/* Category Selection */}
         <div className="mb-6">
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-wrap gap-4 justify-startr">
             {['Nacional', 'Internacional', 'Criptomoedas'].map((category) => (
               <Button
                 key={category}
