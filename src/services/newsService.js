@@ -102,3 +102,30 @@ export const encodingFixes = {
       "Âª": "ª",
 };
 
+export default class NewsService {
+
+    // 3. O construtor (se houver)
+    constructor() {
+        // ...
+    }
+
+    // 4. As funções (métodos) que o App.jsx chama:
+    async fetchNewsByCategory(category) {
+        // ... CÓDIGO COMPLETO DA FUNÇÃO AQUI
+    }
+
+    getNewsStatsByCategory(articles) {
+        // ... CÓDIGO COMPLETO DA FUNÇÃO AQUI
+    }
+
+    getMockDataByCategory(category) {
+        // ... CÓDIGO COMPLETO DA FUNÇÃO AQUI
+    }
+
+    filterNews(news, filters) {
+        // ... CÓDIGO COMPLETO DA FUNÇÃO AQUI
+    }
+
+    // ... e todas as outras funções auxiliares (cleanText, translateToPortuguese, etc.)
+}
+
