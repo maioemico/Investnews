@@ -22,7 +22,6 @@ import {
   Star,
   Filter
 } from 'lucide-react'
-import newsService from './services/newsService.js'
 import './App.css'
 
 import NewsService from './services/newsService';
@@ -64,18 +63,18 @@ function App() {
         throw new Error('Sem conexão com a internet')
       }
 
-      const articles = await newsService.fetchNewsByCategory(category)
+      const articles = await fetchNewsByCategory(category)
       
       if (articles && articles.length > 0) {
         setNews(articles)
-        setStats(newsService.getNewsStatsByCategory(articles))
+        setStats(getNewsStatsByCategory(articles))
         setLastUpdate(new Date())
       } else {
         // Usar dados mock como fallback
         console.warn('Nenhuma notícia carregada dos RSS feeds, usando dados de demonstração')
-        const mockData = newsService.getMockDataByCategory(category)
+        const mockData = getMockDataByCategory(category)
         setNews(mockData)
-        setStats(newsService.getNewsStatsByCategory(mockData))
+        setStats(getNewsStatsByCategory(mockData))
         setLastUpdate(new Date())
         setError('Usando dados de demonstração - alguns RSS feeds podem estar indisponíveis')
       }
@@ -83,9 +82,9 @@ function App() {
       console.error('Erro ao carregar notícias:', err)
       setError(err.message || 'Erro ao carregar notícias')
       // Usar dados mock como fallback em caso de erro
-      const mockData = newsService.getMockDataByCategory(category)
+      const mockData = getMockDataByCategory(category)
       setNews(mockData)
-      setStats(newsService.getNewsStatsByCategory(mockData))
+      setStats(getNewsStatsByCategory(mockData))
       setLastUpdate(new Date())
     } finally {
       setLoading(false)
@@ -98,7 +97,7 @@ function App() {
   }, [selectedFeedCategory, loadNews])
 
   // Filtrar notícias
-  const filteredNews = newsService.filterNews(news, {
+  const filteredNews = filterNews(news, {
     search: searchTerm,
     source: selectedSource,
     category: selectedCategory,
