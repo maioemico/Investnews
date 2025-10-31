@@ -453,7 +453,7 @@ function App() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-3 text-sm line-clamp-3">{article.description}</p>
-                  <div className="flex flex-wrap items-center space-x-2">
+                  <div className="flex flex-wrap items-center space-x-2 justify-start sm:justify-center">
                     <Badge className={getRelevanceBadgeColor(article.relevanceScore)}>
                       {getRelevanceLabel(article.relevanceScore)}
                     </Badge>
