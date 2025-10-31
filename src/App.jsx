@@ -229,7 +229,7 @@ function App() {
               <Button 
                 onClick={() => loadNews(selectedFeedCategory)} 
                 variant="outline" 
-                className="flex items-center space-x-2"
+                className="flex items-right space-x-2"
                 disabled={loading}
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
