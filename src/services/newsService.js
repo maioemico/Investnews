@@ -1,8 +1,4 @@
-
-class NewsService {
-export default class NewsService {
-
-const encodingFixes = {
+export const encodingFixes = {
       "&amp;": "&",
       "&lt;": "<",
       "&gt;": ">",
@@ -104,5 +100,5 @@ const encodingFixes = {
       "â€”": "—",
       "Âº": "º",
       "Âª": "ª",
-} }   };
+};
 
