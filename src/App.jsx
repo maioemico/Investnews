@@ -253,13 +253,13 @@ function App() {
 
         {/* Category Selection */}
         <div className="mb-6">
-          <div className="flex flex-wrap gap-4 justify-startr">
+          <div className="flex flex-col gap-4 justify-start sm:justify-center">
 {['Nacional', 'Internacional', 'Criptomoedas'].map((category) => (
-  <div key={category} className="flex items-center space-x-2">
+  <div key={category} className="flex items-center space-x-2 w-full sm:w-auto">
     <Button
       onClick={() => setSelectedFeedCategory(category)}
       // Adicione w-36 (largura fixa) e remova o Badge de dentro
-      className={`flex items-center space-x-2 w-36 justify-start px-6 py-3 text-lg font-semibold transition-all duration-200 ${
+className={`flex items-center space-x-2 w-full md:w-48 justify-start px-6 py-3 text-lg font-semibold transition-all duration-200 ${
         selectedFeedCategory === category
           ? getCategoryColor(category) + ' shadow-lg scale-105'
           : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
