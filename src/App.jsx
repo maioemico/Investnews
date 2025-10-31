@@ -24,8 +24,10 @@ import {
 } from 'lucide-react'
 import './App.css'
 
+// Importação da CLASSE NewsService e criação da instância
 import NewsService from './services/newsService';
 const newsService = new NewsService();
+
 
 function App() {
   const [news, setNews] = useState([])
@@ -63,18 +65,22 @@ function App() {
         throw new Error('Sem conexão com a internet')
       }
 
-      const articles = await newsService.fetchNewsByCategory(category)
+      // CORREÇÃO: Usando newsService.fetchNewsByCategory
+      const articles = await newsService.fetchNewsByCategory(category) 
       
       if (articles && articles.length > 0) {
         setNews(articles)
-        setStats(newsService.getNewsStatsByCategory(articles))
+        // CORREÇÃO: Usando newsService.getNewsStatsByCategory
+        setStats(newsService.getNewsStatsByCategory(articles)) 
         setLastUpdate(new Date())
       } else {
         // Usar dados mock como fallback
         console.warn('Nenhuma notícia carregada dos RSS feeds, usando dados de demonstração')
-        const mockData = newsService.getMockDataByCategory(category)
+        // CORREÇÃO: Usando newsService.getMockDataByCategory
+        const mockData = newsService.getMockDataByCategory(category) 
         setNews(mockData)
-        setStats(newsService.getNewsStatsByCategory(mockData))
+        // CORREÇÃO: Usando newsService.getNewsStatsByCategory
+        setStats(newsService.getNewsStatsByCategory(mockData)) 
         setLastUpdate(new Date())
         setError('Usando dados de demonstração - alguns RSS feeds podem estar indisponíveis')
       }
@@ -82,9 +88,11 @@ function App() {
       console.error('Erro ao carregar notícias:', err)
       setError(err.message || 'Erro ao carregar notícias')
       // Usar dados mock como fallback em caso de erro
-      const mockData = newsService.getMockDataByCategory(category)
+      // CORREÇÃO: Usando newsService.getMockDataByCategory
+      const mockData = newsService.getMockDataByCategory(category) 
       setNews(mockData)
-      setStats(newsService.getNewsStatsByCategory(mockData))
+      // CORREÇÃO: Usando newsService.getNewsStatsByCategory
+      setStats(newsService.getNewsStatsByCategory(mockData)) 
       setLastUpdate(new Date())
     } finally {
       setLoading(false)
@@ -97,7 +105,8 @@ function App() {
   }, [selectedFeedCategory, loadNews])
 
   // Filtrar notícias
-  const filteredNews = newsService.filterNews(news, {
+  // CORREÇÃO: Usando newsService.filterNews
+  const filteredNews = newsService.filterNews(news, { 
     search: searchTerm,
     source: selectedSource,
     category: selectedCategory,
@@ -277,145 +286,132 @@ function App() {
                     <p className="text-blue-100 text-sm">Total de Notícias</p>
                     <p className="text-2xl font-bold">{stats.total}</p>
                   </div>
-                  <BarChart3 className="h-8 w-8 text-blue-200" />
+                  <BarChart3 className="h-8 w-8 text-blue-300" />
                 </div>
               </CardContent>
             </Card>
-            
-            <Card className="bg-gradient-to-r from-red-500 to-red-600 text-white">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-red-100 text-sm">Alta Relevância</p>
-                    <p className="text-2xl font-bold">{stats.byRelevance.high}</p>
-                  </div>
-                  <Star className="h-8 w-8 text-red-200" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-orange-100 text-sm">Média Relevância</p>
-                    <p className="text-2xl font-bold">{stats.byRelevance.medium}</p>
-                  </div>
-                  <Filter className="h-8 w-8 text-orange-200" />
-                </div>
-              </CardContent>
-            </Card>
-            
+
             <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-green-100 text-sm">Categoria Atual</p>
-                    <p className="text-lg font-bold">{selectedFeedCategory}</p>
+                    <p className="text-green-100 text-sm">Notícias Nacionais</p>
+                    <p className="text-2xl font-bold">{stats.byFeedCategory['Nacional'] || 0}</p>
                   </div>
-                  {getCategoryIcon(selectedFeedCategory)}
+                  <Flag className="h-8 w-8 text-green-300" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-indigo-100 text-sm">Notícias Internacionais</p>
+                    <p className="text-2xl font-bold">{stats.byFeedCategory['Internacional'] || 0}</p>
+                  </div>
+                  <Globe className="h-8 w-8 text-indigo-300" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-yellow-100 text-sm">Notícias Cripto</p>
+                    <p className="text-2xl font-bold">{stats.byFeedCategory['Criptomoedas'] || 0}</p>
+                  </div>
+                  <Bitcoin className="h-8 w-8 text-yellow-300" />
                 </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Buscar notícias..."/>
-              </div>
-            </div>
-            <div className="flex gap-4 w-full">
-              <Select value={selectedSource} onValueChange={setSelectedSource}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Fonte" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as fontes</SelectItem>
-                  {uniqueSources.map(source => (
-                    <SelectItem key={source} value={source}>{source}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as categorias</SelectItem>
-                  {uniqueCategories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Filtros e Pesquisa */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Pesquisar por título ou descrição..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
+
+          <Select
+            value={selectedSource}
+            onValueChange={setSelectedSource}
+          >
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Filtrar por Fonte" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Fontes ({uniqueSources.length + 1})</SelectItem>
+              {uniqueSources.map(source => (
+                <SelectItem key={source} value={source}>
+                  {source}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={selectedCategory}
+            onValueChange={setSelectedCategory}
+          >
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Filtrar por Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Categorias ({uniqueCategories.length + 1})</SelectItem>
+              {uniqueCategories.map(category => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* News Content */}
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
-            <TabsTrigger value="all">Todas as Notícias ({filteredNews.length})</TabsTrigger>
-            <TabsTrigger value="top">Alta Relevância ({topNews.length})</TabsTrigger>
-            <TabsTrigger value="regular">Outras ({regularNews.length})</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all" className="mt-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredNews.map((article) => (
-                <Card key={article.id} className="hover:shadow-lg transition-shadow duration-200 overflow-hidden">
-                  {article.image && (
-                    <div className="aspect-video overflow-hidden">
-                      <img 
-                        src={article.image} 
-                        alt={article.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                        onError={(e) => {
-                          e.target.style.display = 'none'
-                        }}
-                      />
-                    </div>
-                  )}
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2 mb-2">
+        {/* Notícias de Alta Relevância */}
+        {topNews.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+              <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+              <span>Alta Relevância</span>
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {topNews.map((article, index) => (
+                <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-red-500">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-red-700">{article.title}</CardTitle>
+                    <CardDescription className="flex items-center space-x-2 text-sm text-gray-500">
+                      <Clock className="h-4 w-4" />
+                      <span>{formatTimeAgo(article.pubDate)}</span>
+                      <span>•</span>
+                      <span>{article.source}</span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 mb-3">{article.description}</p>
+                    <div className="flex flex-wrap items-center space-x-2">
                       <Badge className={getRelevanceBadgeColor(article.relevanceScore)}>
                         {getRelevanceLabel(article.relevanceScore)}
                       </Badge>
-                      <div className="flex gap-1">
-                        <Badge variant="outline">{article.category}</Badge>
-                        <Badge className={`${getCategoryColor(article.feedCategory)} text-xs`}>
-                          {article.feedCategory}
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardTitle className="text-lg leading-tight hover:text-blue-600 transition-colors">
-                      <a href={article.url} target="_blank" rel="noopener noreferrer">
-                        {article.title}
-                      </a>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm text-gray-600 mb-4 line-clamp-3">
-                      {article.description}
-                    </CardDescription>
-                    <div className="flex items-center
-                    justify-between text-gray-500 text-xs">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{formatTimeAgo(article.publishedAt)}</span>
-                      </div>
+                      <Badge variant="secondary" className="bg-gray-200 text-gray-600">
+                        {article.category}
+                      </Badge>
                       <a
-                        href={article.url}
+                        href={article.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center space-x-1 hover:text-blue-600"
+                        className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 text-sm font-medium"
                       >
-                        <span>{article.source}</span>
+                        <span>Leia Mais</span>
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
@@ -423,129 +419,66 @@ function App() {
                 </Card>
               ))}
             </div>
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="top" className="mt-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {topNews.map((article) => (
-                <Card key={article.id} className="hover:shadow-lg transition-shadow duration-200 overflow-hidden">
-                  {article.image && (
-                    <div className="aspect-video overflow-hidden">
-                      <img 
-                        src={article.image} 
-                        alt={article.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                        onError={(e) => {
-                          e.target.style.display = 'none'
-                        }}
-                      />
-                    </div>
-                  )}
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <Badge className={getRelevanceBadgeColor(article.relevanceScore)}>
-                        {getRelevanceLabel(article.relevanceScore)}
-                      </Badge>
-                      <div className="flex gap-1">
-                        <Badge variant="outline">{article.category}</Badge>
-                        <Badge className={`${getCategoryColor(article.feedCategory)} text-xs`}>
-                          {article.feedCategory}
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardTitle className="text-lg leading-tight hover:text-blue-600 transition-colors">
-                      <a href={article.url} target="_blank" rel="noopener noreferrer">
-                        {article.title}
-                      </a>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm text-gray-600 mb-4 line-clamp-3">
-                      {article.description}
-                    </CardDescription>
-                    <div className="flex items-center
-                    justify-between text-gray-500 text-xs">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{formatTimeAgo(article.publishedAt)}</span>
-                      </div>
-                      <a
-                        href={article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-1 hover:text-blue-600"
-                      >
-                        <span>{article.source}</span>
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        {/* Notícias Regulares */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+            <Filter className="h-6 w-6 text-gray-600" />
+            <span>Outras Notícias</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {regularNews.map((article, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <CardTitle className="text-lg">{article.title}</CardTitle>
+                  <CardDescription className="flex items-center space-x-2 text-xs text-gray-500">
+                    <Clock className="h-3 w-3" />
+                    <span>{formatTimeAgo(article.pubDate)}</span>
+                    <span>•</span>
+                    <span>{article.source}</span>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-3 text-sm line-clamp-3">{article.description}</p>
+                  <div className="flex flex-wrap items-center space-x-2">
+                    <Badge className={getRelevanceBadgeColor(article.relevanceScore)}>
+                      {getRelevanceLabel(article.relevanceScore)}
+                    </Badge>
+                    <Badge variant="secondary" className="bg-gray-200 text-gray-600">
+                      {article.category}
+                    </Badge>
+                    <a
+                      href={article.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 text-sm font-medium"
+                    >
+                      <span>Leia Mais</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {filteredNews.length === 0 && (
+            <div className="text-center py-10 text-gray-500">
+              <p className="text-xl">Nenhuma notícia encontrada com os filtros atuais.</p>
+              <p className="text-sm mt-2">Tente ajustar a pesquisa ou os filtros.</p>
             </div>
-          </TabsContent>
-
-          <TabsContent value="regular" className="mt-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {regularNews.map((article) => (
-                <Card key={article.id} className="hover:shadow-lg transition-shadow duration-200 overflow-hidden">
-                  {article.image && (
-                    <div className="aspect-video overflow-hidden">
-                      <img 
-                        src={article.image} 
-                        alt={article.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                        onError={(e) => {
-                          e.target.style.display = 'none'
-                        }}
-                      />
-                    </div>
-                  )}
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <Badge className={getRelevanceBadgeColor(article.relevanceScore)}>
-                        {getRelevanceLabel(article.relevanceScore)}
-                      </Badge>
-                      <div className="flex gap-1">
-                        <Badge variant="outline">{article.category}</Badge>
-                        <Badge className={`${getCategoryColor(article.feedCategory)} text-xs`}>
-                          {article.feedCategory}
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardTitle className="text-lg leading-tight hover:text-blue-600 transition-colors">
-                      <a href={article.url} target="_blank" rel="noopener noreferrer">
-                        {article.title}
-                      </a>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm text-gray-600 mb-4 line-clamp-3">
-                      {article.description}
-                    </CardDescription>
-                    <div className="flex items-center
-                    justify-between text-gray-500 text-xs">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{formatTimeAgo(article.publishedAt)}</span>
-                      </div>
-                      <a
-                        href={article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-1 hover:text-blue-600"
-                      >
-                        <span>{article.source}</span>
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-4 mt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+          <p>&copy; {new Date().getFullYear()} Investnews. Agregador de Notícias de Investimentos.</p>
+          <p className="mt-1">Desenvolvido com React, Vite e Tailwind CSS.</p>
+        </div>
+      </footer>
     </div>
   )
 }
