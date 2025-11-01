@@ -26,13 +26,28 @@ export default class NewsService {
         this.parser = new DOMParser();
     }
 
-    cleanText(text) {
-        let cleaned = text;
-        for (const [key, value] of Object.entries(encodingFixes)) {
-            cleaned = cleaned.replace(new RegExp(key, 'g'), value);
-        }
-        return cleaned.replace(/<[^>]*>?/gm, ''); // Remove tags HTML remanescentes
+cleanText(text) {
+    let cleaned = text;
+    
+    // 1. Remove tags HTML remanescentes (mantendo a lógica anterior)
+    cleaned = cleaned.replace(/<[^>]*>?/gm, ''); 
+
+    // 2. Remove atributos de dados do WordPress (data-medium-file, data-large-file, etc.)
+    // Este regex remove qualquer atributo que comece com 'data-' seguido por aspas e o conteúdo até o fechamento das aspas.
+    // Também remove o padrão 'Foto: ...' que costuma vir antes.
+    cleaned = cleaned.replace(/Foto:.*?(\s*data-.*?=".*?").*?/g, '');
+    cleaned = cleaned.replace(/data-.*?=".*?"/g, '');
+    
+    // 3. Aplica as correções de codificação (mantendo a lógica anterior)
+    for (const [key, value] of Object.entries(encodingFixes)) {
+        cleaned = cleaned.replace(new RegExp(key, 'g'), value);
     }
+    
+    // 4. Remove espaços em branco extras
+    cleaned = cleaned.trim().replace(/\s\s+/g, ' ');
+
+    return cleaned;
+}
 
     translateToPortuguese(text) {
         // Mapeamento de termos financeiros comuns para simular tradução
