@@ -20,12 +20,62 @@ const RSS_FEEDS = {
 };
 
 const PROXY_URL = "https://corsproxy.io/?";
+const KEYWORDS_URL = "https://docs.google.com/spreadsheets/d/1N7d_O0TERXXuQ1dBZQBuc96E6QdKRWmo164rUffb7TI/gviz/tq?tqx=out:csv&sheet=Sheet1";
 
 export default class NewsService {
     constructor( ) {
         this.parser = new DOMParser();
+        this.keywords = []; // Inicializa a lista de palavras-chave
     }
 
+    async loadKeywords() {
+    if (this.keywords.length > 0) return; // Carrega apenas uma vez
+
+    try {
+        const proxiedUrl = PROXY_URL + encodeURIComponent(KEYWORDS_URL);
+        const response = await fetch(proxiedUrl);
+        const csvText = await response.text();
+
+        // O CSV terá o formato: "Palavra-chave"\n"Palavra-chave"\n...
+        // Remove as aspas e divide por linha
+        const keywords = csvText
+            .replace(/"/g, '')
+            .split('\n')
+            .map(k => k.trim().toLowerCase())
+            .filter(k => k.length > 0 && k !== 'palavra-chave'); // Remove o cabeçalho
+
+        this.keywords = keywords;
+        console.log(`[NewsService] ${keywords.length} palavras-chave carregadas.`);
+    } catch (error) {
+        console.error("Erro ao carregar palavras-chave do Google Sheets:", error);
+        // Fallback para evitar que o app quebre
+        keywords = ['investimento', 'cripto', 'dólar', 'selic'];
+        
+    }
+}
+
+calculateRelevance(article) {
+    let score = 50; // Pontuação base
+    const title = article.title.toLowerCase();
+    const description = article.description.toLowerCase();
+
+    for (const keyword of this.keywords) {
+        // Pontuação Alta: Palavra-chave no Título
+        if (title.includes(keyword)) {
+            score += 40; // Ex: 50 + 40 = 90 (Alta Relevância)
+            break; // Encontrou no título, pontuação máxima para esta notícia
+        }
+        // Pontuação Média: Palavra-chave na Descrição
+        else if (description.includes(keyword)) {
+            score += 20; // Ex: 50 + 20 = 70 (Média Relevância)
+        }
+    }
+
+    // Garante que a pontuação não ultrapasse 99
+    return Math.min(score, 99);
+}
+
+    
 cleanText(text) {
     let cleaned = text;
     
@@ -90,7 +140,6 @@ cleanText(text) {
                 pubDate: pubDate,
                 source: source,
                 category: 'Geral', // Será definido na fetchNewsByCategory
-                relevanceScore: Math.floor(Math.random() * 50) + 50, // 50 a 99
             });
         });
 
@@ -121,6 +170,8 @@ cleanText(text) {
     }
 
     async fetchNewsByCategory(category) {
+        await this.loadKeywords(); 
+        
         const feeds = RSS_FEEDS[category] || [];
         let allArticles = [];
 
@@ -133,6 +184,7 @@ cleanText(text) {
                         article.title = this.translateToPortuguese(article.title);
                         article.description = this.translateToPortuguese(article.description);
                     }
+                            article.relevanceScore = this.calculateRelevance(article);
                 });
                 allArticles = allArticles.concat(articles);
             } catch (error) {
