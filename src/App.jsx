@@ -212,7 +212,7 @@ function App() {
                 <p className="text-gray-600 mt-1">Nacional • Internacional • Criptomoedas</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+            <div className="flex items-center justify-end space-x-4 mt-4 sm:mt-0">
               <div className="flex items-center space-x-2">
                 {isOnline ? (
                   <>
@@ -286,59 +286,6 @@ function App() {
 
           </div>
         </div>
-
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-blue-100 text-sm">Total de Notícias</p>
-                    <p className="text-2xl font-bold">{stats.total}</p>
-                  </div>
-                  <BarChart3 className="h-8 w-8 text-blue-300" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-green-100 text-sm">Notícias Nacionais</p>
-                    <p className="text-2xl font-bold">{stats.byFeedCategory['Nacional'] || 0}</p>
-                  </div>
-                  <Flag className="h-8 w-8 text-green-300" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-indigo-100 text-sm">Notícias Internacionais</p>
-                    <p className="text-2xl font-bold">{stats.byFeedCategory['Internacional'] || 0}</p>
-                  </div>
-                  <Globe className="h-8 w-8 text-indigo-300" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-yellow-100 text-sm">Notícias Cripto</p>
-                    <p className="text-2xl font-bold">{stats.byFeedCategory['Criptomoedas'] || 0}</p>
-                  </div>
-                  <Bitcoin className="h-8 w-8 text-yellow-300" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {/* Filtros e Pesquisa */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
