@@ -40,6 +40,7 @@ function App() {
   const [lastUpdate, setLastUpdate] = useState(null)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [stats, setStats] = useState(null)
+	const [isStatusPage, setIsStatusPage] = useState(false)
 
   // Monitorar status de conexão
   useEffect(() => {
@@ -199,8 +200,13 @@ function App() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      if (isStatusPage) {
+	    return <StatusPage setIsStatusPage={setIsStatusPage} newsService={newsService} />;
+	  }
+
+      return (
+   <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-1
+     
       {/* Header */}
       <header className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -226,6 +232,14 @@ function App() {
                   </>
                 )}
               </div>
+              <Button 
+             onClick={() => setIsStatusPage(true)} // <--- NOVO BOTÃO
+             variant="outline" 
+	           className="flex items-center space-x-2"
+              >
+             <Wifi className="h-4 w-4" />
+             <span>RSS Status</span>
+             </Button>
               <Button 
                 onClick={() => loadNews(selectedFeedCategory)} 
                 variant="outline" 
@@ -440,6 +454,79 @@ function App() {
     </div>
   )
 }
+
+// NOVO COMPONENTE: Página de Status do RSS
+const StatusPage = ({ setIsStatusPage, newsService }) => {
+    const [statusList, setStatusList] = useState([]);
+    
+    useEffect(() => {
+        // A lista de status só é preenchida após a primeira busca de notícias
+        setStatusList(newsService.getFeedStatus());
+    }, [newsService]);
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-8">
+            <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-xl">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-3xl font-bold text-gray-900">Status dos Feeds RSS</h1>
+                    <Button onClick={() => setIsStatusPage(false)}>
+                        Voltar para Notícias
+                    </Button>
+                </div>
+
+                <p className="text-gray-600 mb-6">
+                    Monitoramento da última tentativa de conexão com os feeds. O status é atualizado a cada clique no botão "Atualizar".
+                </p>
+
+                {statusList.length === 0 ? (
+                    <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                            Status não disponível. Por favor, volte para a página principal e clique em "Atualizar" para iniciar a busca dos feeds.
+                        </AlertDescription>
+                    </Alert>
+                ) : (
+                    <div className="space-y-6">
+                        {['Nacional', 'Internacional', 'Criptomoedas'].map(category => (
+                            <div key={category}>
+                                <h2 className="text-xl font-semibold text-blue-700 mb-3">{category}</h2>
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fonte</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Última Tentativa</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {statusList.filter(s => s.category === category).map((feed, index) => (
+                                                <tr key={index}>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{feed.name}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <Badge className={`text-xs font-semibold ${feed.status === 'Ativo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                            {feed.status}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{feed.lastAttempt}</td>
+                                                    <td className="px-6 py-4 text-sm text-blue-600 truncate max-w-xs">
+                                                        <a href={feed.url} target="_blank" rel="noopener noreferrer">{feed.url}</a>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 
 export default App
 
