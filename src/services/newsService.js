@@ -26,6 +26,7 @@ export default class NewsService {
     constructor( ) {
         this.parser = new DOMParser();
         this.keywords = []; // Inicializa a lista de palavras-chave
+        this.feedStatus = {};
     }
 
     async loadKeywords() {
@@ -146,28 +147,33 @@ cleanText(text) {
         return articles;
     }
 
-    async fetchFeed(feedUrl, retries = 3) {
-        const proxiedUrl = PROXY_URL + encodeURIComponent(feedUrl);
-        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+async fetchFeed(feedUrl, retries = 3) {
+    const proxiedUrl = PROXY_URL + encodeURIComponent(feedUrl);
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const feedName = feedUrl; // Usaremos a URL como chave
 
-        for (let i = 0; i < retries; i++) {
-            try {
-                const response = await fetch(proxiedUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const xmlText = await response.text();
-                return this.parseRSS(xmlText);
-            } catch (error) {
-                console.error(`Tentativa ${i + 1} falhou para ${feedUrl}:`, error.message);
-                if (i < retries - 1) {
-                    await delay(1000 * Math.pow(2, i)); // Exponential backoff
-                } else {
-                    throw new Error(`Falha ao buscar feed após ${retries} tentativas: ${feedUrl}`);
-                }
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(proxiedUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const xmlText = await response.text();
+            
+            // SUCESSO: Registra como ativofeedStatus[feedName] = { status: 'Ativo', lastAttempt: new Date().toLocaleString(), error: null };
+            return this.parseRSS(xmlText);
+        } catch (error) {
+            console.error(`Tentativa ${i + 1} falhou para ${feedUrl}:`, error.message);
+            if (i < retries - 1) {
+                await delay(1000 * Math.pow(2, i)); // Exponential backoff
+            } else {
+                // FALHA FINAL: Registra como inativofeedStatus[feedName] = { status: 'Inativo', lastAttempt: new Date().toLocaleString(), error: error.message };
+                throw new Error(`Falha ao buscar feed após ${retries} tentativas: ${feedUrl}`);
             }
         }
     }
+}
+
 
     async fetchNewsByCategory(category) {
         await this.loadKeywords(); 
@@ -251,5 +257,23 @@ cleanText(text) {
 
         return filtered;
     }
+
+    getFeedStatus() {
+    const statusList = [];
+    for (const category in RSS_FEEDS) {
+        RSS_FEEDS[category].forEach(feed => {
+            const status = this.feedStatus[feed.url] || { status: 'Não Verificado', lastAttempt: 'N/A', error: null };
+            statusList.push({
+                category: category,
+                name: feed.name,
+                url: feed.url,
+                status: status.status,
+                lastAttempt: status.lastAttempt,
+                error: status.error
+            });
+        });
+    }
+    return statusList;
+}
 }
 
