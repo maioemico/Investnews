@@ -205,7 +205,7 @@ function App() {
 	  }
 
       return (
-   <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-1
+   <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-1>
      
       {/* Header */}
       <header className="bg-white shadow-lg border-b border-gray-200">
