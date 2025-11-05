@@ -262,7 +262,7 @@ async fetchFeed(feedUrl, retries = 3) {
         // Garante que a lista de feeds esteja carregada do localStorage
         // Se this.feeds for nulo ou vazio, ele carrega do localStorage
         if (!this.feeds || Object.keys(this.feeds).length === 0) {
-            this.feeds = this.getRSSFeeds();
+             this.feeds = this.getFeedsFromStorage();
         }
 
         const statusList = [];
