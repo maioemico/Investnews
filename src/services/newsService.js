@@ -259,21 +259,28 @@ async fetchFeed(feedUrl, retries = 3) {
     }
 
     getFeedStatus() {
-    const statusList = [];
-    for (const category in RSS_FEEDS) {
-        RSS_FEEDS[category].forEach(feed => {
-            const status = this.feedStatus[feed.url] || { status: 'Não Verificado', lastAttempt: 'N/A', error: null };
-            statusList.push({
-                category: category,
-                name: feed.name,
-                url: feed.url,
-                status: status.status,
-                lastAttempt: status.lastAttempt,
-                error: status.error
+        // Garante que a lista de feeds esteja carregada do localStorage
+        // Se this.feeds for nulo ou vazio, ele carrega do localStorage
+        if (!this.feeds || Object.keys(this.feeds).length === 0) {
+            this.feeds = this.getRSSFeeds();
+        }
+
+        const statusList = [];
+        // Itera sobre a variável de instância this.feeds (carregada do localStorage)
+        for (const category in this.feeds) {
+            this.feeds[category].forEach(feed => {
+                const status = this.feedStatus[feed.url] || { status: 'Não Verificado', lastAttempt: 'N/A', error: null };
+                statusList.push({
+                    category: category,
+                    name: feed.name,
+                    url: feed.url,
+                    status: status.status,
+                    lastAttempt: status.lastAttempt,
+                    error: status.error
+                });
             });
-        });
+        }
+        return statusList;
     }
-    return statusList;
-}
 }
 
