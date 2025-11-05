@@ -27,6 +27,14 @@ export default class NewsService {
         this.parser = new DOMParser();
         this.keywords = []; // Inicializa a lista de palavras-chave
         this.feedStatus = {};
+        this.feeds = this.getFeedsFromStorage();
+        this.feedStatus = {};
+        this.keywords = this.getKeywordsFromStorage();
+
+        // Binding dos métodos para garantir que 'this' seja sempre a instância da classe
+        this.getFeedStatus = this.getFeedStatus.bind(this);
+        this.getFeedsFromStorage = this.getFeedsFromStorage.bind(this);
+        // Adicione outros métodos que chamam 'this.algumOutroMetodo'
     }
 
     async loadKeywords() {
