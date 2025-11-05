@@ -107,15 +107,16 @@ function App() {
 
   // Filtrar notícias
   // CORREÇÃO: Usando newsService.filterNews
-  const filteredNews = newsService.filterNews(news, { 
+  const filteredNews = newsService.filterNews(news || [], { 
     search: searchTerm,
     source: selectedSource,
     category: selectedCategory,
     feedCategory: selectedFeedCategory
   }) || [] 
 
-  const topNews = filteredNews.filter(article => article.relevanceScore >= 90)
-  const regularNews = filteredNews.filter(article => article.relevanceScore < 90)
+  const topNews = (filteredNews || []).filter(article => article.relevanceScore >= 90)
+  const regularNews = (filteredNews || []).filter(article => article.relevanceScore < 90)
+
 
   const formatTimeAgo = (dateString) => {
     const now = new Date()
