@@ -458,12 +458,8 @@ function App() {
 
 // NOVO COMPONENTE: Página de Status do RSS
 const StatusPage = ({ setIsStatusPage, newsService }) => {
-    const [statusList, setStatusList] = useState([]);
-    
-    useEffect(() => {
-        // A lista de status só é preenchida após a primeira busca de notícias
-        setStatusList(newsService.getFeedStatus());
-    }, [newsService]);
+    // Carrega o status diretamente na renderização
+    const statusList = newsService.getFeedStatus(); 
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-8">
