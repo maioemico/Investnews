@@ -22,7 +22,7 @@ const RSS_FEEDS = {
 const PROXY_URL = "https://corsproxy.io/?";
 const KEYWORDS_URL = "https://docs.google.com/spreadsheets/d/1N7d_O0TERXXuQ1dBZQBuc96E6QdKRWmo164rUffb7TI/gviz/tq?tqx=out:csv&sheet=Sheet1";
  
-class NewsService {
+export class NewsService {
     constructor() {
         // 1. Binding dos métodos PRIMEIRO
         // Isso garante que 'this' esteja correto antes de qualquer chamada
@@ -291,6 +291,4 @@ async fetchFeed(feedUrl, retries = 3) {
         return statusList;
     }
 }
-
-export default NewsService; 
 
