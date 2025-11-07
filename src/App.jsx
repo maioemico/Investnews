@@ -25,7 +25,7 @@ import {
 import './App.css'
 
 // Importação da CLASSE NewsService e criação da instância
-import NewsService from './services/newsService';
+import { NewsService } from './services/newsService';
 const newsService = new NewsService();
 
 
