@@ -25,8 +25,9 @@ import {
 import './App.css'
 
 // Importação da CLASSE NewsService e criação da instância
-import NewsService from './services/newsService';
-const newsService = new NewsServiceClass(); 
+// Usando o nome original, pois o newsService_final.js usa export default
+import NewsService from './services/newsService'; 
+const newsService = new NewsService();
 
 
 function App() {
@@ -106,7 +107,7 @@ function App() {
   }, [selectedFeedCategory, loadNews])
 
   // Filtrar notícias
-  // CORREÇÃO: Usando newsService.filterNews
+  // CORREÇÃO: Adicionando (news || []) para evitar TypeError: Cannot read properties of undefined (reading 'filter')
   const filteredNews = newsService.filterNews(news || [], { 
     search: searchTerm,
     source: selectedSource,
@@ -114,6 +115,7 @@ function App() {
     feedCategory: selectedFeedCategory
   }) || [] 
 
+  // CORREÇÃO: Adicionando (filteredNews || []) para evitar TypeError: Cannot read properties of undefined (reading 'filter')
   const topNews = (filteredNews || []).filter(article => article.relevanceScore >= 90)
   const regularNews = (filteredNews || []).filter(article => article.relevanceScore < 90)
 
@@ -277,254 +279,129 @@ function App() {
     <Button
       onClick={() => setSelectedFeedCategory(category)}
       // Mantenha a largura fixa de 192px (w-48)
-      className={`flex items-center space-x-2 w-48 justify-start px-6 py-3 text-lg font-semibold transition-all duration-200 ${
-        selectedFeedCategory === category
-          ? getCategoryColor(category) + ' shadow-lg scale-105'
-          : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-      }`}
+      className={`w-full sm:w-48 ${getCategoryColor(category)}`}
+      disabled={loading}
     >
       {getCategoryIcon(category)}
-      <span>{category}</span>
-      {/* O Badge foi removido daqui */}
+      <span className="ml-2">{category}</span>
     </Button>
-    
-    {/* O Badge de contagem agora está FORA do botão */}
-    {stats && stats.byFeedCategory[category] && (
-      <Badge 
-        variant="secondary" 
-        className="text-sm font-bold bg-gray-300 text-gray-800"
-      >
-        {stats.byFeedCategory[category]}
-      </Badge>
-    )}
   </div>
 ))}
-
           </div>
         </div>
 
-        {/* Filtros e Pesquisa */}
+        {/* Stats Card */}
+        {stats && (
+          <Card className="mb-6 bg-white shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-gray-800">Estatísticas da Categoria ({selectedFeedCategory})</CardTitle>
+              <CardDescription className="text-gray-600">Visão geral das notícias agregadas.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-3 border rounded-lg bg-blue-50">
+                <p className="text-3xl font-extrabold text-blue-600">{stats.total}</p>
+                <p className="text-sm text-gray-600">Notícias Agregadas</p>
+              </div>
+              <div className="text-center p-3 border rounded-lg bg-green-50">
+                <p className="text-xl font-bold text-green-600">Fontes:</p>
+                {Object.entries(stats.bySource).map(([source, count]) => (
+                  <p key={source} className="text-sm text-gray-700">{source} ({count})</p>
+                ))}
+              </div>
+              <div className="text-center p-3 border rounded-lg bg-yellow-50">
+                <p className="text-xl font-bold text-yellow-600">Categorias:</p>
+                {Object.entries(stats.byFeedCategory).map(([category, count]) => (
+                  <p key={category} className="text-sm text-gray-700">{category} ({count})</p>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <Input
               type="text"
-              placeholder="Pesquisar por título ou descrição..."
+              placeholder="Buscar por título ou descrição..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 pr-4 py-2 border rounded-lg w-full shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
-          <Select
-            value={selectedSource}
-            onValueChange={setSelectedSource}
-          >
-            <SelectTrigger className="w-full md:w-48">
+          <Select value={selectedSource} onValueChange={setSelectedSource}>
+            <SelectTrigger className="w-full md:w-[180px] shadow-sm">
+              <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar por Fonte" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as Fontes ({uniqueSources.length + 1})</SelectItem>
+              <SelectItem value="all">Todas as Fontes</SelectItem>
               {uniqueSources.map(source => (
-                <SelectItem key={source} value={source}>
-                  {source}
-                </SelectItem>
+                <SelectItem key={source} value={source}>{source}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select
-            value={selectedCategory}
-            onValueChange={setSelectedCategory}
-          >
-            <SelectTrigger className="w-full md:w-48">
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full md:w-[180px] shadow-sm">
+              <Flag className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar por Categoria" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as Categorias ({uniqueCategories.length + 1})</SelectItem>
+              <SelectItem value="all">Todas as Categorias</SelectItem>
               {uniqueCategories.map(category => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
+                <SelectItem key={category} value={category}>{category}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Notícias de Alta Relevância */}
-        {topNews.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-              <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-              <span>Alta Relevância</span>
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {topNews.map((article, index) => (
-                <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-red-500">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-red-700">{article.title}</CardTitle>
-                    <CardDescription className="flex items-center space-x-2 text-sm text-gray-500">
-                      <Clock className="h-4 w-4" />
-                      <span>{formatTimeAgo(article.pubDate)}</span>
-                      <span>•</span>
-                      <span>{article.source}</span>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 mb-3">{article.description}</p>
-                    <div className="flex flex-wrap items-center space-x-2">
-                      <Badge className={getRelevanceBadgeColor(article.relevanceScore)}>
-                        {getRelevanceLabel(article.relevanceScore)}
-                      </Badge>
-                      <Badge variant="secondary" className="bg-gray-200 text-gray-600">
-                        {article.category}
-                      </Badge>
-                      <a
-                        href={article.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 text-sm font-medium"
-                      >
-                        <span>Leia Mais</span>
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        {/* News List */}
+        <div className="space-y-6">
+          {/* Top News */}
+          {topNews.length > 0 && (
+            <div className="border-b pb-4">
+              <h2 className="text-2xl font-bold text-red-600 mb-4 flex items-center">
+                <Star className="h-6 w-6 mr-2 fill-red-600 text-red-600" />
+                Notícias de Alta Relevância
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {topNews.map((item, index) => (
+                  <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-red-300 border-2">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <Badge className={getRelevanceBadgeColor(item.relevanceScore)}>
+                          {getRelevanceLabel(item.relevanceScore)}
+                        </Badge>
+                        <span className="text-xs text-gray-500 flex items-center">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {formatTimeAgo(item.pubDate)}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
+                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
+                          {item.title}
+                          <ExternalLink className="h-4 w-4 ml-2 text-blue-500" />
+                        </a>
+                      </h3>
+                      <p className="text-sm text-gray-700 mb-3 line-clamp-3">{item.description}</p>
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <Badge variant="secondary" className="bg-gray-200 text-gray-700">
+                          {item.source}
+                        </Badge>
+                        <Badge className="bg-blue-100 text-blue-800">
+                          {item.category}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* Notícias Regulares */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-            <Filter className="h-6 w-6 text-gray-600" />
-            <span>Outras Notícias</span>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {regularNews.map((article, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
-                <CardHeader>
-                  <CardTitle className="text-lg">{article.title}</CardTitle>
-                  <CardDescription className="flex items-center space-x-2 text-xs text-gray-500">
-                    <Clock className="h-3 w-3" />
-                    <span>{formatTimeAgo(article.pubDate)}</span>
-                    <span>•</span>
-                    <span>{article.source}</span>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-3 text-sm line-clamp-3">{article.description}</p>
-                  <div className="flex flex-wrap items-center space-x-2 justify-start sm:justify-center">
-                    <Badge className={getRelevanceBadgeColor(article.relevanceScore)}>
-                      {getRelevanceLabel(article.relevanceScore)}
-                    </Badge>
-                    <Badge variant="secondary" className="bg-gray-200 text-gray-600">
-                      {article.category}
-                    </Badge>
-                    <a
-                      href={article.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 text-sm font-medium"
-                    >
-                      <span>Leia Mais</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          {filteredNews.length === 0 && (
-            <div className="text-center py-10 text-gray-500">
-              <p className="text-xl">Nenhuma notícia encontrada com os filtros atuais.</p>
-              <p className="text-sm mt-2">Tente ajustar a pesquisa ou os filtros.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-4 mt-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} Investnews. Agregador de Notícias de Investimentos.</p>
-          <p className="mt-1">Desenvolvido com React, Vite e Tailwind CSS.</p>
-        </div>
-      </footer>
-    </div>
-  )
-}
-
-// NOVO COMPONENTE: Página de Status do RSS
-const StatusPage = ({ setIsStatusPage, newsService }) => {
-    // Carrega o status diretamente na renderização
-    const statusList = newsService.getFeedStatus(); 
-
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-8">
-            <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-xl">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Status dos Feeds RSS</h1>
-                    <Button onClick={() => setIsStatusPage(false)}>
-                        Voltar para Notícias
-                    </Button>
-                </div>
-
-                <p className="text-gray-600 mb-6">
-                    Monitoramento da última tentativa de conexão com os feeds. O status é atualizado a cada clique no botão "Atualizar".
-                </p>
-
-                {statusList.length === 0 ? (
-                    <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                            Status não disponível. Por favor, volte para a página principal e clique em "Atualizar" para iniciar a busca dos feeds.
-                        </AlertDescription>
-                    </Alert>
-                ) : (
-                    <div className="space-y-6">
-                        {['Nacional', 'Internacional', 'Criptomoedas'].map(category => (
-                            <div key={category}>
-                                <h2 className="text-xl font-semibold text-blue-700 mb-3">{category}</h2>
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fonte</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Última Tentativa</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {statusList.filter(s => s.category === category).map((feed, index) => (
-                                                <tr key={index}>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{feed.name}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <Badge className={`text-xs font-semibold ${feed.status === 'Ativo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                            {feed.status}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{feed.lastAttempt}</td>
-                                                    <td className="px-6 py-4 text-sm text-blue-600 truncate max-w-xs">
-                                                        <a href={feed.url} target="_blank" rel="noopener noreferrer">{feed.url}</a>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
+         
+(Content truncated due to size limit. Use page ranges or line ranges to read remaining content)
 
 
-export default App
 
