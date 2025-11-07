@@ -24,92 +24,103 @@ const KEYWORDS_URL = "https://docs.google.com/spreadsheets/d/1N7d_O0TERXXuQ1dBZQ
  
 class NewsService {
     constructor() {
-        // 1. Binding dos métodos PRIMEIRO
-        // Isso garante que 'this' esteja correto antes de qualquer chamada
+        // Inicializa o parser DOM
+        this.parser = new DOMParser();
+        
+        // 1. Binding dos métodos PRIMEIRO (para resolver o TypeError no construtor)
         this.getFeedStatus = this.getFeedStatus.bind(this);
         this.getFeedsFromStorage = this.getFeedsFromStorage.bind(this);
-        this.getKeywordsFromStorage = this.getKeywordsFromStorage.bind(this); // Adicionei este também por segurança
+        this.getKeywordsFromStorage = this.getKeywordsFromStorage.bind(this);
 
         // 2. Inicialização de variáveis DEPOIS
-        // Agora, as chamadas aos métodos ligados funcionarão
         this.feeds = this.getFeedsFromStorage();
         this.feedStatus = {};
         this.keywords = this.getKeywordsFromStorage();
     }
 
+    // Métodos de Storage
+    getFeedsFromStorage() {
+        try {
+            const feeds = localStorage.getItem('rssFeeds');
+            return feeds ? JSON.parse(feeds) : RSS_FEEDS;
+        } catch (e) {
+            console.error("Erro ao carregar feeds do localStorage, usando feeds padrão.", e);
+            return RSS_FEEDS;
+        }
+    }
+
+    saveFeedsToStorage(feeds) {
+        try {
+            localStorage.setItem('rssFeeds', JSON.stringify(feeds));
+            this.feeds = feeds;
+        } catch (e) {
+            console.error("Erro ao salvar feeds no localStorage.", e);
+        }
+    }
+
+    getKeywordsFromStorage() {
+        // Implementação simples, pode ser expandida
+        return [];
+    }
+
+    // Métodos de Lógica
     async loadKeywords() {
-    if (this.keywords.length > 0) return; // Carrega apenas uma vez
+        if (this.keywords.length > 0) return; 
 
-    try {
-        const proxiedUrl = PROXY_URL + encodeURIComponent(KEYWORDS_URL);
-        const response = await fetch(proxiedUrl);
-        const csvText = await response.text();
+        try {
+            const proxiedUrl = PROXY_URL + encodeURIComponent(KEYWORDS_URL);
+            const response = await fetch(proxiedUrl);
+            const csvText = await response.text();
 
-        // O CSV terá o formato: "Palavra-chave"\n"Palavra-chave"\n...
-        // Remove as aspas e divide por linha
-        const keywords = csvText
-            .replace(/"/g, '')
-            .split('\n')
-            .map(k => k.trim().toLowerCase())
-            .filter(k => k.length > 0 && k !== 'palavra-chave'); // Remove o cabeçalho
+            const keywords = csvText
+                .replace(/"/g, '')
+                .split('\n')
+                .map(k => k.trim().toLowerCase())
+                .filter(k => k.length > 0 && k !== 'palavra-chave'); 
 
-        this.keywords = keywords;
-        console.log(`[NewsService] ${keywords.length} palavras-chave carregadas.`);
-    } catch (error) {
-        console.error("Erro ao carregar palavras-chave do Google Sheets:", error);
-        // Fallback para evitar que o app quebre
-        keywords = ['investimento', 'cripto', 'dólar', 'selic'];
+            this.keywords = keywords;
+            console.log(`[NewsService] ${keywords.length} palavras-chave carregadas.`);
+        } catch (error) {
+            console.error("Erro ao carregar palavras-chave do Google Sheets:", error);
+            this.keywords = ['investimento', 'cripto', 'dólar', 'selic'];
+        }
+    }
+
+    calculateRelevance(article) {
+        let score = 50; 
+        const title = article.title.toLowerCase();
+        const description = article.description.toLowerCase();
+
+        for (const keyword of this.keywords) {
+            if (title.includes(keyword)) {
+                score += 40; 
+                break; 
+            }
+            else if (description.includes(keyword)) {
+                score += 20; 
+            }
+        }
+
+        return Math.min(score, 99);
+    }
+
+    cleanText(text) {
+        let cleaned = text;
         
-    }
-}
-
-calculateRelevance(article) {
-    let score = 50; // Pontuação base
-    const title = article.title.toLowerCase();
-    const description = article.description.toLowerCase();
-
-    for (const keyword of this.keywords) {
-        // Pontuação Alta: Palavra-chave no Título
-        if (title.includes(keyword)) {
-            score += 40; // Ex: 50 + 40 = 90 (Alta Relevância)
-            break; // Encontrou no título, pontuação máxima para esta notícia
+        cleaned = cleaned.replace(/<[^>]*>?/gm, ''); 
+        cleaned = cleaned.replace(/Foto:.*?(\s*data-.*?=".*?").*?/g, '');
+        cleaned = cleaned.replace(/data-.*?=".*?"/g, '');
+        
+        for (const [key, value] of Object.entries(encodingFixes)) {
+            cleaned = cleaned.replace(new RegExp(key, 'g'), value);
         }
-        // Pontuação Média: Palavra-chave na Descrição
-        else if (description.includes(keyword)) {
-            score += 20; // Ex: 50 + 20 = 70 (Média Relevância)
-        }
+        
+        cleaned = cleaned.trim().replace(/\s\s+/g, ' ');
+
+        return cleaned;
     }
-
-    // Garante que a pontuação não ultrapasse 99
-    return Math.min(score, 99);
-}
-
-    
-cleanText(text) {
-    let cleaned = text;
-    
-    // 1. Remove tags HTML remanescentes (mantendo a lógica anterior)
-    cleaned = cleaned.replace(/<[^>]*>?/gm, ''); 
-
-    // 2. Remove atributos de dados do WordPress (data-medium-file, data-large-file, etc.)
-    // Este regex remove qualquer atributo que comece com 'data-' seguido por aspas e o conteúdo até o fechamento das aspas.
-    // Também remove o padrão 'Foto: ...' que costuma vir antes.
-    cleaned = cleaned.replace(/Foto:.*?(\s*data-.*?=".*?").*?/g, '');
-    cleaned = cleaned.replace(/data-.*?=".*?"/g, '');
-    
-    // 3. Aplica as correções de codificação (mantendo a lógica anterior)
-    for (const [key, value] of Object.entries(encodingFixes)) {
-        cleaned = cleaned.replace(new RegExp(key, 'g'), value);
-    }
-    
-    // 4. Remove espaços em branco extras
-    cleaned = cleaned.trim().replace(/\s\s+/g, ' ');
-
-    return cleaned;
-}
 
     translateToPortuguese(text) {
-        // Mapeamento de termos financeiros comuns para simular tradução
         const mapping = {
             'Business': 'Negócios',
             'Markets': 'Mercados',
@@ -148,45 +159,47 @@ cleanText(text) {
                 description: this.cleanText(description),
                 pubDate: pubDate,
                 source: source,
-                category: 'Geral', // Será definido na fetchNewsByCategory
+                category: 'Geral', 
             });
         });
 
         return articles;
     }
 
-async fetchFeed(feedUrl, retries = 3) {
-    const proxiedUrl = PROXY_URL + encodeURIComponent(feedUrl);
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    const feedName = feedUrl; // Usaremos a URL como chave
+    async fetchFeed(feedUrl, retries = 3) {
+        const proxiedUrl = PROXY_URL + encodeURIComponent(feedUrl);
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        const feedName = feedUrl; 
 
-    for (let i = 0; i < retries; i++) {
-        try {
-            const response = await fetch(proxiedUrl);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const xmlText = await response.text();
-            
-            // SUCESSO: Registra como ativofeedStatus[feedName] = { status: 'Ativo', lastAttempt: new Date().toLocaleString(), error: null };
-            return this.parseRSS(xmlText);
-        } catch (error) {
-            console.error(`Tentativa ${i + 1} falhou para ${feedUrl}:`, error.message);
-            if (i < retries - 1) {
-                await delay(1000 * Math.pow(2, i)); // Exponential backoff
-            } else {
-                // FALHA FINAL: Registra como inativofeedStatus[feedName] = { status: 'Inativo', lastAttempt: new Date().toLocaleString(), error: error.message };
-                throw new Error(`Falha ao buscar feed após ${retries} tentativas: ${feedUrl}`);
+        for (let i = 0; i < retries; i++) {
+            try {
+                const response = await fetch(proxiedUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const xmlText = await response.text();
+                
+                // SUCESSO: Registra como ativo
+                this.feedStatus[feedName] = { status: 'Ativo', lastAttempt: new Date().toLocaleString(), error: null };
+                return this.parseRSS(xmlText);
+            } catch (error) {
+                console.error(`Tentativa ${i + 1} falhou para ${feedUrl}:`, error.message);
+                if (i < retries - 1) {
+                    await delay(1000 * Math.pow(2, i)); 
+                } else {
+                    // FALHA FINAL: Registra como inativo
+                    this.feedStatus[feedName] = { status: 'Inativo', lastAttempt: new Date().toLocaleString(), error: error.message };
+                    throw new Error(`Falha ao buscar feed após ${retries} tentativas: ${feedUrl}`);
+                }
             }
         }
     }
-}
-
 
     async fetchNewsByCategory(category) {
         await this.loadKeywords(); 
         
-        const feeds = RSS_FEEDS[category] || [];
+        // Usa this.feeds, que é carregado do localStorage no construtor
+        const feeds = this.feeds[category] || []; 
         let allArticles = [];
 
         for (const feed of feeds) {
@@ -198,7 +211,7 @@ async fetchFeed(feedUrl, retries = 3) {
                         article.title = this.translateToPortuguese(article.title);
                         article.description = this.translateToPortuguese(article.description);
                     }
-                            article.relevanceScore = this.calculateRelevance(article);
+                    article.relevanceScore = this.calculateRelevance(article);
                 });
                 allArticles = allArticles.concat(articles);
             } catch (error) {
@@ -206,14 +219,12 @@ async fetchFeed(feedUrl, retries = 3) {
             }
         }
         
-        // Simplesmente ordena por data de publicação
         allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
         
         return allArticles;
     }
 
     getMockDataByCategory(category) {
-        // Retorna dados mock simples para fallback
         return [{
             title: `[MOCK] Notícia de Demonstração - ${category}`,
             link: '#',
@@ -258,7 +269,6 @@ async fetchFeed(feedUrl, retries = 3) {
             filtered = filtered.filter(article => article.category === category);
         }
 
-        // O filtro por feedCategory já foi feito na fetchNewsByCategory, mas mantemos aqui para consistência.
         if (feedCategory && feedCategory !== 'all') {
              filtered = filtered.filter(article => article.category === feedCategory);
         }
@@ -268,13 +278,11 @@ async fetchFeed(feedUrl, retries = 3) {
 
     getFeedStatus() {
         // Garante que a lista de feeds esteja carregada do localStorage
-        // Se this.feeds for nulo ou vazio, ele carrega do localStorage
         if (!this.feeds || Object.keys(this.feeds).length === 0) {
              this.feeds = this.getFeedsFromStorage();
         }
 
         const statusList = [];
-        // Itera sobre a variável de instância this.feeds (carregada do localStorage)
         for (const category in this.feeds) {
             this.feeds[category].forEach(feed => {
                 const status = this.feedStatus[feed.url] || { status: 'Não Verificado', lastAttempt: 'N/A', error: null };
@@ -292,4 +300,4 @@ async fetchFeed(feedUrl, retries = 3) {
     }
 }
 
-export default NewsService; 
+export default NewsService;
