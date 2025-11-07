@@ -300,4 +300,3 @@ export default class NewsService {
     }
 }
 
-export default NewsService;
