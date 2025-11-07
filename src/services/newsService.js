@@ -22,19 +22,19 @@ const RSS_FEEDS = {
 const PROXY_URL = "https://corsproxy.io/?";
 const KEYWORDS_URL = "https://docs.google.com/spreadsheets/d/1N7d_O0TERXXuQ1dBZQBuc96E6QdKRWmo164rUffb7TI/gviz/tq?tqx=out:csv&sheet=Sheet1";
 
-export default class NewsService {
-    constructor( ) {
-        this.parser = new DOMParser();
-        this.keywords = []; // Inicializa a lista de palavras-chave
-        this.feedStatus = {};
+class NewsService{
+    constructor() {
+        // 1. Binding dos métodos PRIMEIRO
+        // Isso garante que 'this' esteja correto antes de qualquer chamada
+        this.getFeedStatus = this.getFeedStatus.bind(this);
+        this.getFeedsFromStorage = this.getFeedsFromStorage.bind(this);
+        this.getKeywordsFromStorage = this.getKeywordsFromStorage.bind(this); // Adicionei este também por segurança
+
+        // 2. Inicialização de variáveis DEPOIS
+        // Agora, as chamadas aos métodos ligados funcionarão
         this.feeds = this.getFeedsFromStorage();
         this.feedStatus = {};
         this.keywords = this.getKeywordsFromStorage();
-
-        // Binding dos métodos para garantir que 'this' seja sempre a instância da classe
-        this.getFeedStatus = this.getFeedStatus.bind(this);
-        this.getFeedsFromStorage = this.getFeedsFromStorage.bind(this);
-        // Adicione outros métodos que chamam 'this.algumOutroMetodo'
     }
 
     async loadKeywords() {
