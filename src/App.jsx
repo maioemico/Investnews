@@ -26,7 +26,7 @@ import './App.css'
 
 // Importação da CLASSE NewsService e criação da instância
 // Usando o nome original, pois o newsService_final.js usa export default
-import NewsService from './services/newsService'; 
+import NewsService from './services/newsService.js'; 
 const newsService = new NewsService();
 
 
