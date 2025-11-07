@@ -294,4 +294,3 @@ async fetchFeed(feedUrl, retries = 3) {
 
 export default NewsService; 
 
-export default NewsService;
