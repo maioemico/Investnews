@@ -1,4 +1,4 @@
-export const encodingFixes = {
+const encodingFixes = {
     "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": "\"", "&#039;": "'", "&apos;": "'", "&mdash;": "—", "&ndash;": "–", "&nbsp;": " ", "&laquo;": "«", "&raquo;": "»", "&lsquo;": "‘", "&rsquo;": "’", "&ldquo;": "“", "&rdquo;": "”", "&bull;": "•", "&hellip;": "…", "&trade;": "™", "&reg;": "®", "&copy;": "©", "&euro;": "€", "&pound;": "£", "&yen;": "¥", "&cent;": "¢", "&sect;": "§", "&para;": "¶", "&deg;": "°", "&plusmn;": "±", "&frac12;": "½", "&frac14;": "¼", "&frac34;": "¾", "&times;": "×", "&divide;": "÷", "&ne;": "≠", "&le;": "≤", "&ge;": "≥", "&infin;": "∞", "&sum;": "∑", "&prod;": "∏", "&pi;": "π", "&int;": "∫", "&radic;": "√", "&asymp;": "≈", "&delta;": "δ", "&Delta;": "Δ", "&omega;": "ω", "&Omega;": "Ω", "&alpha;": "α", "&beta;": "β", "&gamma;": "γ", "&lambda;": "λ", "&mu;": "μ", "&nu;": "ν", "&xi;": "ξ", "&rho;": "ρ", "&sigma;": "σ", "&tau;": "τ", "&phi;": "φ", "&chi;": "χ", "&psi;": "ψ", "&zeta;": "ζ", "&theta;": "θ", "&epsilon;": "ε", "&eta;": "η", "&iota;": "ι", "&kappa;": "κ",
     // Caracteres de codificação incorreta
     "Ã§": "ç", "Ã‡": "Ç", "Ã¡": "á", "Ã": "Á", "Ã£": "ã", "Ãƒ": "Ã", "Ã¢": "â", "Ã‚": "Â", "Ã©": "é", "Ã‰": "É", "Ãª": "ê", "ÃŠ": "Ê", "Ã­": "í", "Ã": "Í", "Ã³": "ó", "Ã“": "Ó", "Ãµ": "õ", "Ã•": "Õ", "Ã´": "ô", "Ã”": "Ô", "Ãº": "ú", "Ãš": "Ú", "Ã¼": "ü", "Ãœ": "Ü", "â‚¬": "€", "â„¢": "™", "â€™": "’", "â€˜": "‘", "â€œ": "“", "â€": "”", "â€“": "–", "â€”": "—", "Âº": "º", "Âª": "ª",
@@ -22,7 +22,7 @@ const RSS_FEEDS = {
 const PROXY_URL = "https://corsproxy.io/?";
 const KEYWORDS_URL = "https://docs.google.com/spreadsheets/d/1N7d_O0TERXXuQ1dBZQBuc96E6QdKRWmo164rUffb7TI/gviz/tq?tqx=out:csv&sheet=Sheet1";
  
-export default class NewsService{
+default class NewsService{
     constructor() {
         // 1. Binding dos métodos PRIMEIRO
         // Isso garante que 'this' esteja correto antes de qualquer chamada
@@ -292,3 +292,4 @@ async fetchFeed(feedUrl, retries = 3) {
     }
 }
 
+default NewsService;
