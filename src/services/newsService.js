@@ -24,10 +24,12 @@ const KEYWORDS_URL = "https://docs.google.com/spreadsheets/d/1N7d_O0TERXXuQ1dBZQ
  
 export default class NewsService {
     constructor() {
-        // Inicializa o parser DOM
-        this.parser = new DOMParser();
+        // Inicializa o parser DOM SOMENTE SE ESTIVER NO NAVEGADOR
+        if (typeof window !== 'undefined') {
+            this.parser = new DOMParser();
+        }
         
-        // 1. Binding dos métodos PRIMEIRO (para resolver o TypeError no construtor)
+        // 1. Binding dos métodos PRIMEIRO
         this.getFeedStatus = this.getFeedStatus.bind(this);
         this.getFeedsFromStorage = this.getFeedsFromStorage.bind(this);
         this.getKeywordsFromStorage = this.getKeywordsFromStorage.bind(this);
@@ -142,6 +144,10 @@ export default class NewsService {
     }
 
     parseRSS(xmlText) {
+                if (!this.parser) {
+            console.error("DOMParser não está disponível.");
+            return [];
+        }
         const doc = this.parser.parseFromString(xmlText, "text/xml");
         const items = doc.querySelectorAll("item");
         const articles = [];
