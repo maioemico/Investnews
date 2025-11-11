@@ -403,7 +403,11 @@ function App() {
 			</div>        
          </div> {/* Fechamento da div de conteúdo */}
         </div> {/* Fechamento da div principal */}
-	      ) // Fechamento do return ( )
-	    } // Fechamento da função App { }
+	      ) 
+	    } 
 
+function StatusPage({ setIsStatusPage, newsService }) {
 
+}
+
+export default App
