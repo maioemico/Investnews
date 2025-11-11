@@ -400,6 +400,4 @@ function App() {
                 ))}
 			  </div>
 			</div>        
-
-
-
+)
