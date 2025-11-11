@@ -398,9 +398,7 @@ function App() {
                     </CardContent>
                   </Card>
                 ))}
-			  </div>
-			</div>        
-         </div> 
-       </div> 
+			  </div>   
+         </div>  
       ) 
     } 
