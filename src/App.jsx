@@ -400,7 +400,7 @@ function App() {
                 ))}
 			  </div>
 			</div>        
-         </div> {/* Fechamento da div de conteúdo */}
-       </div> {/* Fechamento da div principal */}
-      ) // Fechamento do return ( )
-    } // Fechamento da função App { }
+         </div> 
+       </div> 
+      ) 
+    } 
