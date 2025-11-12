@@ -407,7 +407,76 @@ function App() {
 	    } 
 
 function StatusPage({ setIsStatusPage, newsService }) {
+    const [statusList, setStatusList] = useState([]);
+    const [loading, setLoading] = useState(false);
 
+    const fetchStatus = useCallback(() => {
+        setLoading(true);
+        // Chama o método corrigido que carrega os feeds do localStorage e verifica o status
+        const status = newsService.getFeedStatus(); 
+        setStatusList(status);
+        setLoading(false);
+    }, [newsService]);
+
+    useEffect(() => {
+        fetchStatus();
+    }, [fetchStatus]);
+
+    return (
+        <div className="min-h-screen bg-gray-100 p-8">
+            <div className="max-w-4xl mx-auto">
+                <h1 className="text-3xl font-bold mb-6 text-gray-800">Status dos Feeds RSS</h1>
+                
+                <div className="flex justify-between items-center mb-6">
+                    <Button onClick={() => setIsStatusPage(false)} variant="outline">
+                        Voltar para Notícias
+                    </Button>
+                    <Button onClick={fetchStatus} disabled={loading} className="flex items-center space-x-2">
+                        <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                        <span>{loading ? 'Atualizando...' : 'Atualizar Status'}</span>
+                    </Button>
+                </div>
+
+                <Card className="shadow-lg">
+                    <CardHeader>
+                        <CardTitle className="text-xl">Visão Geral</CardTitle>
+                        <CardDescription>Monitoramento em tempo real da conectividade dos feeds RSS.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {statusList.map((item, index) => (
+                                <div key={index} className="p-4 border rounded-lg bg-white flex justify-between items-center">
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{item.name} ({item.category})</p>
+                                        <p className="text-sm text-gray-600 truncate">{item.url}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <Badge 
+                                            className={`text-sm font-bold ${
+                                                item.status === 'Ativo' ? 'bg-green-500 text-white' : 
+                                                item.status === 'Inativo' ? 'bg-red-500 text-white' : 
+                                                'bg-gray-500 text-white'
+                                            }`}
+                                        >
+                                            {item.status}
+                                        </Badge>
+                                        <p className="text-xs text-gray-500 mt-1">Última Tentativa: {item.lastAttempt}</p>
+                                        {item.error && (
+                                            <p className="text-xs text-red-500 mt-1">Erro: {item.error.substring(0, 50)}...</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {statusList.length === 0 && !loading && (
+                                <Alert>
+                                    <AlertDescription>Nenhum feed RSS encontrado. Adicione feeds para monitorar.</AlertDescription>
+                                </Alert>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
 }
-
 export default App
