@@ -171,7 +171,48 @@ export default class NewsService {
 
         return articles;
     }
+    
+    addFeed(category, name, url) {
 
+        const currentFeeds = this.getFeedsFromStorage(); 
+        
+
+        if (!currentFeeds[category]) {
+            currentFeeds[category] = [];
+        }
+                const exists = currentFeeds[category].some(feed => feed.url === url);
+        if (exists) {
+            console.warn(`Feed ${url} já existe na categoria ${category}.`);
+            return false; 
+        }
+
+        currentFeeds[category].push({ name, url });
+        
+        this.saveFeedsToStorage(currentFeeds);
+        
+        return true; // Retorna verdadeiro se for adicionado
+    }
+    removeFeed(urlToRemove) {
+        const currentFeeds = this.getFeedsFromStorage();
+        let removed = false;
+
+        for (const category in currentFeeds) {
+            const initialLength = currentFeeds[category].length;
+            
+            // Filtra o feed a ser removido
+            currentFeeds[category] = currentFeeds[category].filter(feed => feed.url !== urlToRemove);
+            
+            if (currentFeeds[category].length < initialLength) {
+                removed = true;
+            }
+        }
+
+        if (removed) {
+            this.saveFeedsToStorage(currentFeeds);
+        }
+        
+        return removed;
+    }
     async fetchFeed(feedUrl, retries = 3) {
         const proxiedUrl = PROXY_URL + encodeURIComponent(feedUrl);
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
