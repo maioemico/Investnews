@@ -25,9 +25,8 @@ import {
 import './App.css'
 
 // Importação da CLASSE NewsService e criação da instância
-// Usando o nome original, pois o newsService_final.js usa export default
-import NewsService from './services/newsService.js'; // Ou './services/newsService'
-const newsService = new NewsService(); // O nome da classe deve ser NewsService
+import NewsService from './services/newsService.js'; 
+const newsService = new NewsService(); 
 
 
 function App() {
@@ -203,14 +202,13 @@ function App() {
     )
   }
 
-      if (isStatusPage) {
-	    return <StatusPage setIsStatusPage={setIsStatusPage} newsService={newsService} />;
-	  }
+  if (isStatusPage) {
+    return <StatusPage setIsStatusPage={setIsStatusPage} newsService={newsService} />;
+  }
 
-      return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
 
-     
       {/* Header */}
       <header className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -237,7 +235,7 @@ function App() {
                 )}
               </div>
               <Button 
-             onClick={() => setIsStatusPage(true)} // <--- NOVO BOTÃO
+             onClick={() => setIsStatusPage(true)} 
              variant="outline" 
 	           className="flex items-center space-x-2"
               >
@@ -273,12 +271,9 @@ function App() {
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-start sm:justify-center">
 {['Nacional', 'Internacional', 'Criptomoedas'].map((category) => (
-  // Removemos o w-full e usamos w-48 no mobile também, mas com mx-auto para centralizar
-  // Usaremos w-full apenas se for realmente necessário.
   <div key={category} className="flex items-center space-x-2 w-full sm:w-auto"> 
     <Button
       onClick={() => setSelectedFeedCategory(category)}
-      // Mantenha a largura fixa de 192px (w-48)
       className={`w-full sm:w-48 ${getCategoryColor(category)}`}
       disabled={loading}
     >
@@ -292,48 +287,37 @@ function App() {
 
         {/* Stats Card */}
         {stats && (
-          <Card className="mb-6 bg-white shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-gray-800">Estatísticas da Categoria ({selectedFeedCategory})</CardTitle>
-              <CardDescription className="text-gray-600">Visão geral das notícias agregadas.</CardDescription>
+          <Card className="mb-6 shadow-md border-l-4 border-blue-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-blue-600">
+                <BarChart3 className="h-4 w-4 inline mr-2" />
+                Estatísticas da Categoria ({selectedFeedCategory})
+              </CardTitle>
+              <span className="text-xs text-gray-500">Última Atualização: {lastUpdate ? lastUpdate.toLocaleTimeString() : 'N/A'}</span>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-3 border rounded-lg bg-blue-50">
-                <p className="text-3xl font-extrabold text-blue-600">{stats.total}</p>
-                <p className="text-sm text-gray-600">Notícias Agregadas</p>
-              </div>
-              <div className="text-center p-3 border rounded-lg bg-green-50">
-                <p className="text-xl font-bold text-green-600">Fontes:</p>
-                {Object.entries(stats.bySource).map(([source, count]) => (
-                  <p key={source} className="text-sm text-gray-700">{source} ({count})</p>
-                ))}
-              </div>
-              <div className="text-center p-3 border rounded-lg bg-yellow-50">
-                <p className="text-xl font-bold text-yellow-600">Categorias:</p>
-                {Object.entries(stats.byFeedCategory).map(([category, count]) => (
-                  <p key={category} className="text-sm text-gray-700">{category} ({count})</p>
-                ))}
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-2xl font-bold">{stats.total}</div>
+                <div className="text-sm text-gray-500">Notícias</div>
+                <div className="text-sm text-gray-500">Fontes: {Object.keys(stats.bySource).length}</div>
               </div>
             </CardContent>
           </Card>
         )}
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Buscar por título ou descrição..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border rounded-lg w-full shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <Input
+            type="text"
+            placeholder="Buscar por título ou descrição..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="sm:w-1/3"
+            icon={<Search className="h-4 w-4 text-gray-500" />}
+          />
           <Select value={selectedSource} onValueChange={setSelectedSource}>
-            <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-              <Filter className="h-4 w-4 mr-2" />
+            <SelectTrigger className="sm:w-1/3">
+              <Filter className="h-4 w-4 mr-2 text-gray-500" />
               <SelectValue placeholder="Filtrar por Fonte" />
             </SelectTrigger>
             <SelectContent>
@@ -343,10 +327,9 @@ function App() {
               ))}
             </SelectContent>
           </Select>
-
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-              <Flag className="h-4 w-4 mr-2" />
+            <SelectTrigger className="sm:w-1/3">
+              <Filter className="h-4 w-4 mr-2 text-gray-500" />
               <SelectValue placeholder="Filtrar por Categoria" />
             </SelectTrigger>
             <SelectContent>
@@ -359,52 +342,80 @@ function App() {
         </div>
 
         {/* News List */}
-        <div className="space-y-6">
-          {/* Top News */}
-          {topNews.length > 0 && (
-            <div className="border-b pb-4">
-              <h2 className="text-2xl font-bold text-red-600 mb-4 flex items-center">
-                <Star className="h-6 w-6 mr-2 fill-red-600 text-red-600" />
-                Notícias de Alta Relevância
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {topNews.map((item, index) => (
-                  <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-red-300 border-2">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <Badge className={getRelevanceBadgeColor(item.relevanceScore)}>
-                          {getRelevanceLabel(item.relevanceScore)}
-                        </Badge>
-                        <span className="text-xs text-gray-500 flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {formatTimeAgo(item.pubDate)}
-                        </span>
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
-                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
-                          {item.title}
-                          <ExternalLink className="h-4 w-4 ml-2 text-blue-500" />
-                        </a>
-                      </h3>
-                      <p className="text-sm text-gray-700 mb-3 line-clamp-3">{item.description}</p>
-                      <div className="flex justify-between items-center text-xs text-gray-500">
-                        <Badge variant="secondary" className="bg-gray-200 text-gray-700">
-                          {item.source}
-                        </Badge>
-                        <Badge className="bg-blue-100 text-blue-800">
-                          {item.category}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+          <Star className="h-5 w-5 text-yellow-500" />
+          Notícias de Alta Relevância
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {topNews.map((item, index) => (
+            <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-red-300 border-2">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <Badge className={getRelevanceBadgeColor(item.relevanceScore)}>
+                    {getRelevanceLabel(item.relevanceScore)}
+                  </Badge>
+                  <span className="text-xs text-gray-500 flex items-center">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {formatTimeAgo(item.pubDate)}
+                  </span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
+                    {item.title}
+                    <ExternalLink className="h-4 w-4 ml-2 text-blue-500" />
+                  </a>
+                </h3>
+                <p className="text-sm text-gray-700 mb-3 line-clamp-3">{item.description}</p>
+                <div className="flex justify-between items-center text-xs text-gray-500">
+                  <Badge variant="secondary" className="bg-gray-200 text-gray-700">
+                    {item.source}
+                  </Badge>
+                  <Badge className="bg-blue-100 text-blue-800">
+                    {item.category}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-              ))}
-			  </div>
-			</div> 
-</div>
-</div>		  
-	      ) 
-	    } 
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 mt-8">Outras Notícias</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {regularNews.map((item, index) => (
+            <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <Badge className={getRelevanceBadgeColor(item.relevanceScore)}>
+                    {getRelevanceLabel(item.relevanceScore)}
+                  </Badge>
+                  <span className="text-xs text-gray-500 flex items-center">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {formatTimeAgo(item.pubDate)}
+                  </span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
+                    {item.title}
+                    <ExternalLink className="h-4 w-4 ml-2 text-blue-500" />
+                  </a>
+                </h3>
+                <p className="text-sm text-gray-700 mb-3 line-clamp-3">{item.description}</p>
+                <div className="flex justify-between items-center text-xs text-gray-500">
+                  <Badge variant="secondary" className="bg-gray-200 text-gray-700">
+                    {item.source}
+                  </Badge>
+                  <Badge className="bg-blue-100 text-blue-800">
+                    {item.category}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function StatusPage({ setIsStatusPage, newsService }) {
     const [statusList, setStatusList] = useState([]);
@@ -479,5 +490,5 @@ function StatusPage({ setIsStatusPage, newsService }) {
         </div>
     );
 }
-		  		
+
 export default App
