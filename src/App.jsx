@@ -420,13 +420,42 @@ function App() {
 function StatusPage({ setIsStatusPage, newsService }) {
     const [statusList, setStatusList] = useState([]);
     const [loading, setLoading] = useState(false);
-
+    const [newFeed, setNewFeed] = useState({ name: '', url: '', category: 'Nacional' });
+    const [message, setMessage] = useState({ type: '', text: '' });
+	
     const fetchStatus = useCallback(() => {
         setLoading(true);
         // Chama o método corrigido que carrega os feeds do localStorage e verifica o status
         const status = newsService.getFeedStatus(); 
         setStatusList(status);
         setLoading(false);
+
+		 const handleAddFeed = () => {
+        if (!newFeed.name || !newFeed.url || !newFeed.category) {
+            setMessage({ type: 'error', text: 'Preencha todos os campos.' });
+            return;
+        }
+        
+        const added = newsService.addFeed(newFeed.category, newFeed.name, newFeed.url);
+        
+        if (added) {
+            setMessage({ type: 'success', text: `Feed "${newFeed.name}" adicionado com sucesso!` });
+            setNewFeed({ name: '', url: '', category: newFeed.category }); // Limpa o formulário
+            fetchStatus(); // Atualiza a lista
+        } else {
+            setMessage({ type: 'error', text: `Feed "${newFeed.name}" já existe.` });
+        }
+    };
+
+    const handleRemoveFeed = (url) => {
+        const removed = newsService.removeFeed(url);
+        if (removed) {
+            setMessage({ type: 'success', text: 'Feed removido com sucesso.' });
+            fetchStatus(); // Atualiza a lista
+        } else {
+            setMessage({ type: 'error', text: 'Erro ao remover feed.' });
+        }
+    };
     }, [newsService]);
 
     useEffect(() => {
@@ -482,6 +511,86 @@ function StatusPage({ setIsStatusPage, newsService }) {
                                 <Alert>
                                     <AlertDescription>Nenhum feed RSS encontrado. Adicione feeds para monitorar.</AlertDescription>
                                 </Alert>
+			                {/* Formulário de Adição de Feed */}
+                <Card className="shadow-lg mt-8">
+                    <CardHeader>
+                        <CardTitle className="text-xl">Adicionar Novo Feed RSS</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {message.text && (
+                            <Alert className={`mb-4 ${message.type === 'error' ? 'border-red-400 bg-red-50' : 'border-green-400 bg-green-50'}`}>
+                                <AlertDescription className={message.type === 'error' ? 'text-red-800' : 'text-green-800'}>
+                                    {message.text}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <Input
+                                placeholder="Nome da Fonte (Ex: CNN Brasil)"
+                                value={newFeed.name}
+                                onChange={(e) => setNewFeed({ ...newFeed, name: e.target.value })}
+                                className="md:col-span-2"
+                            />
+                            <Input
+                                placeholder="URL do Feed RSS (Ex: https://cnnbrasil.com.br/feed )"
+                                value={newFeed.url}
+                                onChange={(e) => setNewFeed({ ...newFeed, url: e.target.value })}
+                                className="md:col-span-2"
+                            />
+                            <Select value={newFeed.category} onValueChange={(value) => setNewFeed({ ...newFeed, category: value })}>
+                                <SelectTrigger className="md:col-span-1">
+                                    <SelectValue placeholder="Categoria" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {['Nacional', 'Internacional', 'Criptomoedas'].map(cat => (
+                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button onClick={handleAddFeed} className="md:col-span-1">
+                                Adicionar Feed
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+// ...
+
+// Modifique a lista de status para incluir o botão de remoção
+// Substitua o bloco que começa na linha 447 (no código anterior)
+// ...
+                            {statusList.map((item, index) => (
+                                <div key={index} className="p-4 border rounded-lg bg-white flex justify-between items-center">
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{item.name} ({item.category})</p>
+                                        <p className="text-sm text-gray-600 truncate">{item.url}</p>
+                                    </div>
+                                    <div className="text-right flex items-center space-x-2">
+                                        <div>
+                                            <Badge 
+                                                className={`text-sm font-bold ${
+                                                    item.status === 'Ativo' ? 'bg-green-500 text-white' : 
+                                                    item.status === 'Inativo' ? 'bg-red-500 text-white' : 
+                                                    'bg-gray-500 text-white'
+                                                }`}
+                                            >
+                                                {item.status}
+                                            </Badge>
+                                            <p className="text-xs text-gray-500 mt-1">Última Tentativa: {item.lastAttempt}</p>
+                                            {item.error && (
+                                                <p className="text-xs text-red-500 mt-1">Erro: {item.error.substring(0, 50)}...</p>
+                                            )}
+                                        </div>
+                                        <Button 
+                                            variant="destructive" 
+                                            size="sm" 
+                                            onClick={() => handleRemoveFeed(item.url)}
+                                        >
+                                            Remover
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
                             )}
                         </div>
                     </CardContent>
