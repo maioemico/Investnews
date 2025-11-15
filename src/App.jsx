@@ -422,15 +422,16 @@ function StatusPage({ setIsStatusPage, newsService }) {
     const [loading, setLoading] = useState(false);
     const [newFeed, setNewFeed] = useState({ name: '', url: '', category: 'Nacional' });
     const [message, setMessage] = useState({ type: '', text: '' });
-	
+
     const fetchStatus = useCallback(() => {
         setLoading(true);
         // Chama o método corrigido que carrega os feeds do localStorage e verifica o status
         const status = newsService.getFeedStatus(); 
         setStatusList(status);
         setLoading(false);
+    }, [newsService]);
 
-		 const handleAddFeed = () => {
+    const handleAddFeed = () => {
         if (!newFeed.name || !newFeed.url || !newFeed.category) {
             setMessage({ type: 'error', text: 'Preencha todos os campos.' });
             return;
@@ -456,7 +457,6 @@ function StatusPage({ setIsStatusPage, newsService }) {
             setMessage({ type: 'error', text: 'Erro ao remover feed.' });
         }
     };
-    }, [newsService]);
 
     useEffect(() => {
         fetchStatus();
@@ -477,41 +477,7 @@ function StatusPage({ setIsStatusPage, newsService }) {
                     </Button>
                 </div>
 
-                <Card className="shadow-lg">
-                    <CardHeader>
-                        <CardTitle className="text-xl">Visão Geral</CardTitle>
-                        <CardDescription>Monitoramento em tempo real da conectividade dos feeds RSS.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {statusList.map((item, index) => (
-                                <div key={index} className="p-4 border rounded-lg bg-white flex justify-between items-center">
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{item.name} ({item.category})</p>
-                                        <p className="text-sm text-gray-600 truncate">{item.url}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <Badge 
-                                            className={`text-sm font-bold ${
-                                                item.status === 'Ativo' ? 'bg-green-500 text-white' : 
-                                                item.status === 'Inativo' ? 'bg-red-500 text-white' : 
-                                                'bg-gray-500 text-white'
-                                            }`}
-                                        >
-                                            {item.status}
-                                        </Badge>
-                                        <p className="text-xs text-gray-500 mt-1">Última Tentativa: {item.lastAttempt}</p>
-                                        {item.error && (
-                                            <p className="text-xs text-red-500 mt-1">Erro: {item.error.substring(0, 50)}...</p>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                            {statusList.length === 0 && !loading && (
-                                <Alert>
-                                    <AlertDescription>Nenhum feed RSS encontrado. Adicione feeds para monitorar.</AlertDescription>
-                                </Alert>
-			                {/* Formulário de Adição de Feed */}
+                {/* Formulário de Adição de Feed */}
                 <Card className="shadow-lg mt-8">
                     <CardHeader>
                         <CardTitle className="text-xl">Adicionar Novo Feed RSS</CardTitle>
@@ -532,7 +498,7 @@ function StatusPage({ setIsStatusPage, newsService }) {
                                 className="md:col-span-2"
                             />
                             <Input
-                                placeholder="URL do Feed RSS (Ex: https://cnnbrasil.com.br/feed )"
+                                placeholder="URL do Feed RSS (Ex: https://cnnbrasil.com.br/feed)"
                                 value={newFeed.url}
                                 onChange={(e) => setNewFeed({ ...newFeed, url: e.target.value })}
                                 className="md:col-span-2"
@@ -553,12 +519,14 @@ function StatusPage({ setIsStatusPage, newsService }) {
                         </div>
                     </CardContent>
                 </Card>
-                
-// ...
 
-// Modifique a lista de status para incluir o botão de remoção
-// Substitua o bloco que começa na linha 447 (no código anterior)
-// ...
+                <Card className="shadow-lg mt-8">
+                    <CardHeader>
+                        <CardTitle className="text-xl">Visão Geral</CardTitle>
+                        <CardDescription>Monitoramento em tempo real da conectividade dos feeds RSS.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
                             {statusList.map((item, index) => (
                                 <div key={index} className="p-4 border rounded-lg bg-white flex justify-between items-center">
                                     <div>
@@ -591,6 +559,10 @@ function StatusPage({ setIsStatusPage, newsService }) {
                                     </div>
                                 </div>
                             ))}
+                            {statusList.length === 0 && !loading && (
+                                <Alert>
+                                    <AlertDescription>Nenhum feed RSS encontrado. Adicione feeds para monitorar.</AlertDescription>
+                                </Alert>
                             )}
                         </div>
                     </CardContent>
