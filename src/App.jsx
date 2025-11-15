@@ -529,11 +529,21 @@ function StatusPage({ setIsStatusPage, newsService }) {
                         <div className="space-y-4">
                             {statusList.map((item, index) => (
                                 <div key={index} className="p-4 border rounded-lg bg-white flex justify-between items-center">
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{item.name} ({item.category})</p>
+                                    {/* Bloco 1: Nome e URL */}
+                                    <div className="flex-grow">
+                                        <p className="font-semibold text-gray-900">{item.name}</p>
                                         <p className="text-sm text-gray-600 truncate">{item.url}</p>
                                     </div>
-                                    <div className="text-right flex items-center space-x-2">
+                                    
+                                    {/* Bloco 2: Status, Categoria e Botão Remover */}
+                                    <div className="text-right flex items-center space-x-4">
+                                        
+                                        {/* Categoria como Badge */}
+                                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                            {item.category}
+                                        </Badge>
+
+                                        {/* Status e Última Tentativa */}
                                         <div>
                                             <Badge 
                                                 className={`text-sm font-bold ${
@@ -549,6 +559,8 @@ function StatusPage({ setIsStatusPage, newsService }) {
                                                 <p className="text-xs text-red-500 mt-1">Erro: {item.error.substring(0, 50)}...</p>
                                             )}
                                         </div>
+                                        
+                                        {/* Botão Remover */}
                                         <Button 
                                             variant="destructive" 
                                             size="sm" 
