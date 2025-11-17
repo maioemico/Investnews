@@ -153,7 +153,8 @@ export default class NewsService {
         return translated;
     }
 
-    parseRSS(xmlText) {
+    // MODIFICADO: Aceita o nome do feed cadastrado
+    parseRSS(xmlText, registeredSourceName) {
         if (!this.parser) {
             console.error("DOMParser não está disponível.");
             return [];
@@ -167,14 +168,14 @@ export default class NewsService {
             const link = item.querySelector("link")?.textContent || '';
             const description = item.querySelector("description")?.textContent || '';
             const pubDate = item.querySelector("pubDate")?.textContent || new Date().toISOString();
-            const source = item.closest('channel').querySelector('title')?.textContent || 'Desconhecida';
+            // const source = item.closest('channel').querySelector('title')?.textContent || 'Desconhecida'; // LINHA REMOVIDA
 
             articles.push({
                 title: this.cleanText(title),
                 link: link,
                 description: this.cleanText(description),
                 pubDate: pubDate,
-                source: source,
+                source: registeredSourceName, // USANDO O NOME CADASTRADO
                 category: 'Geral', 
             });
         });
@@ -225,10 +226,11 @@ export default class NewsService {
         return removed;
     }
 
-    async fetchFeed(feedUrl, retries = 3) {
+    // MODIFICADO: Aceita o nome do feed cadastrado
+    async fetchFeed(feedUrl, feedName, retries = 3) {
         const proxiedUrl = PROXY_URL + encodeURIComponent(feedUrl);
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-        const feedName = feedUrl; 
+        const feedKey = feedUrl; 
 
         for (let i = 0; i < retries; i++) {
             try {
@@ -239,21 +241,24 @@ export default class NewsService {
                 const xmlText = await response.text();
                 
                 // SUCESSO: Registra como ativo
-                this.feedStatus[feedName] = { status: 'Ativo', lastAttempt: new Date().toLocaleString(), error: null };
-                return this.parseRSS(xmlText);
+                this.feedStatus[feedKey] = { status: 'Ativo', lastAttempt: new Date().toLocaleString(), error: null };
+                
+                // Passa o nome do feed cadastrado para o parser
+                return this.parseRSS(xmlText, feedName); 
             } catch (error) {
                 console.error(`Tentativa ${i + 1} falhou para ${feedUrl}:`, error.message);
                 if (i < retries - 1) {
                     await delay(1000 * Math.pow(2, i)); 
                 } else {
                     // FALHA FINAL: Registra como inativo
-                    this.feedStatus[feedName] = { status: 'Inativo', lastAttempt: new Date().toLocaleString(), error: error.message };
+                    this.feedStatus[feedKey] = { status: 'Inativo', lastAttempt: new Date().toLocaleString(), error: error.message };
                     throw new Error(`Falha ao buscar feed após ${retries} tentativas: ${feedUrl}`);
                 }
             }
         }
     }
 
+    // MODIFICADO: Passa o nome do feed cadastrado para fetchFeed
     async fetchNewsByCategory(category) {
         await this.loadKeywords(); 
         
@@ -263,7 +268,8 @@ export default class NewsService {
 
         for (const feed of feeds) {
             try {
-                const articles = await this.fetchFeed(feed.url);
+                // PASSA O feed.name AQUI
+                const articles = await this.fetchFeed(feed.url, feed.name); 
                 articles.forEach(article => {
                     article.category = category;
                     if (category === 'Internacional') {
@@ -281,7 +287,7 @@ export default class NewsService {
         // Aplica a ordenação por data (mais recente primeiro)
         allArticles = this.sortNewsByDate(allArticles);
         
-        // Limita a 50 notícias (conforme sugestão)
+        // Limita a 50 notícias
         return allArticles.slice(0, 50);
     }
 
