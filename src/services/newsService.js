@@ -23,7 +23,8 @@ const PROXY_URL = "https://corsproxy.io/?";
 const KEYWORDS_URL = "https://docs.google.com/spreadsheets/d/1N7d_O0TERXXuQ1dBZQBuc96E6QdKRWmo164rUffb7TI/gviz/tq?tqx=out:csv&sheet=Sheet1";
  
 export default class NewsService {
-        sortNewsByDate(articles) {
+    
+    sortNewsByDate(articles) {
         return articles.sort((a, b) => {
             const dateA = new Date(a.pubDate);
             const dateB = new Date(b.pubDate);
@@ -31,6 +32,7 @@ export default class NewsService {
             return dateB - dateA; 
         });
     }
+
     constructor() {
         // Inicializa o parser DOM SOMENTE SE ESTIVER NO NAVEGADOR
         if (typeof window !== 'undefined') {
@@ -152,7 +154,7 @@ export default class NewsService {
     }
 
     parseRSS(xmlText) {
-                if (!this.parser) {
+        if (!this.parser) {
             console.error("DOMParser não está disponível.");
             return [];
         }
@@ -184,11 +186,11 @@ export default class NewsService {
 
         const currentFeeds = this.getFeedsFromStorage(); 
         
-
         if (!currentFeeds[category]) {
             currentFeeds[category] = [];
         }
-                const exists = currentFeeds[category].some(feed => feed.url === url);
+        
+        const exists = currentFeeds[category].some(feed => feed.url === url);
         if (exists) {
             console.warn(`Feed ${url} já existe na categoria ${category}.`);
             return false; 
@@ -200,6 +202,7 @@ export default class NewsService {
         
         return true; // Retorna verdadeiro se for adicionado
     }
+
     removeFeed(urlToRemove) {
         const currentFeeds = this.getFeedsFromStorage();
         let removed = false;
@@ -221,6 +224,7 @@ export default class NewsService {
         
         return removed;
     }
+
     async fetchFeed(feedUrl, retries = 3) {
         const proxiedUrl = PROXY_URL + encodeURIComponent(feedUrl);
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -274,84 +278,76 @@ export default class NewsService {
             }
         }
         
-        allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+        // Aplica a ordenação por data (mais recente primeiro)
+        allArticles = this.sortNewsByDate(allArticles);
         
-        return allArticles;
+        // Limita a 50 notícias (conforme sugestão)
+        return allArticles.slice(0, 50);
     }
 
     getMockDataByCategory(category) {
         return [{
             title: `[MOCK] Notícia de Demonstração - ${category}`,
             link: '#',
-            description: 'Esta é uma notícia de demonstração porque os feeds RSS estão indisponíveis.',
+            description: 'Esta é uma notícia de demonstração usada como fallback.',
             pubDate: new Date().toISOString(),
             source: 'Mock Data',
             category: category,
-            relevanceScore: 99,
+            relevanceScore: 95
         }];
     }
 
     getNewsStatsByCategory(articles) {
-        const total = articles.length;
-        const bySource = articles.reduce((acc, article) => {
-            acc[article.source] = (acc[article.source] || 0) + 1;
-            return acc;
-        }, {});
-        const byFeedCategory = articles.reduce((acc, article) => {
-            acc[article.category] = (acc[article.category] || 0) + 1;
-            return acc;
-        }, {});
+        const stats = {
+            total: articles.length,
+            bySource: {}
+        };
 
-        return { total, bySource, byFeedCategory };
+        articles.forEach(article => {
+            stats.bySource[article.source] = (stats.bySource[article.source] || 0) + 1;
+        });
+
+        return stats;
     }
 
-    filterNews(articles, { search, source, category, feedCategory }) {
+    filterNews(articles, filters) {
         let filtered = articles;
 
-        if (search) {
-            const lowerSearch = search.toLowerCase();
-            filtered = filtered.filter(article =>
-                article.title.toLowerCase().includes(lowerSearch) ||
-                article.description.toLowerCase().includes(lowerSearch)
+        if (filters.search) {
+            const searchTerm = filters.search.toLowerCase();
+            filtered = filtered.filter(article => 
+                article.title.toLowerCase().includes(searchTerm) ||
+                article.description.toLowerCase().includes(searchTerm)
             );
         }
 
-        if (source && source !== 'all') {
-            filtered = filtered.filter(article => article.source === source);
+        if (filters.source && filters.source !== 'all') {
+            filtered = filtered.filter(article => article.source === filters.source);
         }
 
-        if (category && category !== 'all') {
-            filtered = filtered.filter(article => article.category === category);
-        }
-
-        if (feedCategory && feedCategory !== 'all') {
-             filtered = filtered.filter(article => article.category === feedCategory);
+        if (filters.category && filters.category !== 'all') {
+            filtered = filtered.filter(article => article.category === filters.category);
         }
 
         return filtered;
     }
 
     getFeedStatus() {
-        // Garante que a lista de feeds esteja carregada do localStorage
-        if (!this.feeds || Object.keys(this.feeds).length === 0) {
-             this.feeds = this.getFeedsFromStorage();
-        }
-
+        const allFeeds = this.getFeedsFromStorage();
         const statusList = [];
-        for (const category in this.feeds) {
-            this.feeds[category].forEach(feed => {
-                const status = this.feedStatus[feed.url] || { status: 'Não Verificado', lastAttempt: 'N/A', error: null };
+
+        for (const category in allFeeds) {
+            allFeeds[category].forEach(feed => {
+                const feedStatus = this.feedStatus[feed.url] || { status: 'Desconhecido', lastAttempt: 'N/A', error: null };
                 statusList.push({
-                    category: category,
                     name: feed.name,
                     url: feed.url,
-                    status: status.status,
-                    lastAttempt: status.lastAttempt,
-                    error: status.error
+                    category: category,
+                    ...feedStatus
                 });
             });
         }
+
         return statusList;
     }
 }
-
