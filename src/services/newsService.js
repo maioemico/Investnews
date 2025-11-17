@@ -23,6 +23,14 @@ const PROXY_URL = "https://corsproxy.io/?";
 const KEYWORDS_URL = "https://docs.google.com/spreadsheets/d/1N7d_O0TERXXuQ1dBZQBuc96E6QdKRWmo164rUffb7TI/gviz/tq?tqx=out:csv&sheet=Sheet1";
  
 export default class NewsService {
+        sortNewsByDate(articles) {
+        return articles.sort((a, b) => {
+            const dateA = new Date(a.pubDate);
+            const dateB = new Date(b.pubDate);
+            // Ordenação decrescente (mais recente primeiro)
+            return dateB - dateA; 
+        });
+    }
     constructor() {
         // Inicializa o parser DOM SOMENTE SE ESTIVER NO NAVEGADOR
         if (typeof window !== 'undefined') {
