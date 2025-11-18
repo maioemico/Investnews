@@ -24,13 +24,73 @@ const KEYWORDS_URL = "https://docs.google.com/spreadsheets/d/1N7d_O0TERXXuQ1dBZQ
  
 export default class NewsService {
     
-    sortNewsByDate(articles) {
+    sortNewsByDate(articles ) {
         return articles.sort((a, b) => {
             const dateA = new Date(a.pubDate);
             const dateB = new Date(b.pubDate);
             // Ordenação decrescente (mais recente primeiro)
             return dateB - dateA; 
         });
+    }
+
+    // NOVO MÉTODO: Agrupamento por Tópico
+    groupNewsByTopic(articles) {
+        const groups = [];
+        const processedIndices = new Set();
+
+        // Função auxiliar para simplificar o título
+        const simplifyTitle = (title) => {
+            return title.toLowerCase().split(/\s+/).slice(0, 5).join(' ');
+        };
+
+        for (let i = 0; i < articles.length; i++) {
+            if (processedIndices.has(i)) continue;
+
+            const currentArticle = articles[i];
+            const currentTitleSimple = simplifyTitle(currentArticle.title);
+            const currentGroup = {
+                topicTitle: currentArticle.title,
+                relevanceScore: currentArticle.relevanceScore,
+                articles: [currentArticle],
+                isHighRelevance: currentArticle.relevanceScore >= 90,
+            };
+
+            processedIndices.add(i);
+
+            for (let j = i + 1; j < articles.length; j++) {
+                if (processedIndices.has(j)) continue;
+
+                const nextArticle = articles[j];
+                const nextTitleSimple = simplifyTitle(nextArticle.title);
+
+                // Lógica de Agrupamento:
+                // 1. Títulos muito semelhantes (primeiras 5 palavras)
+                const isSimilarTitle = currentTitleSimple === nextTitleSimple;
+                
+                // 2. Compartilham a mesma palavra-chave de alta relevância (se houver)
+                const hasSharedKeyword = currentArticle.relevanceScore >= 90 && nextArticle.relevanceScore >= 90 && 
+                                         currentArticle.title.toLowerCase().includes(this.keywords[0]) && 
+                                         nextArticle.title.toLowerCase().includes(this.keywords[0]); // Simplificação: usa a primeira palavra-chave carregada
+
+                if (isSimilarTitle || hasSharedKeyword) {
+                    currentGroup.articles.push(nextArticle);
+                    processedIndices.add(j);
+
+                    // Atualiza o título do tópico para o mais relevante
+                    if (nextArticle.relevanceScore > currentGroup.relevanceScore) {
+                        currentGroup.topicTitle = nextArticle.title;
+                        currentGroup.relevanceScore = nextArticle.relevanceScore;
+                    }
+                    if (nextArticle.relevanceScore >= 90) {
+                        currentGroup.isHighRelevance = true;
+                    }
+                }
+            }
+            groups.push(currentGroup);
+        }
+
+        // Ordena os grupos pelo score de relevância do tópico principal
+        return groups.sort((a, b) => b.relevanceScore - a.relevanceScore);
     }
 
     constructor() {
