@@ -38,16 +38,23 @@ export default class NewsService {
         const groups = [];
         const processedIndices = new Set();
 
-        // Função auxiliar para simplificar o título
+        // Função auxiliar para simplificar o título (primeiras 5 palavras)
         const simplifyTitle = (title) => {
-            return title.toLowerCase().split(/\s+/).slice(0, 5).join(' ');
+            // Remove pontuação e converte para minúsculas
+            const cleanTitle = title.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s{2,}/g," ");
+            return cleanTitle.split(/\s+/).slice(0, 5).join(' ');
         };
 
-        for (let i = 0; i < articles.length; i++) {
+        // Ordena os artigos por relevância para garantir que o mais relevante seja o líder do grupo
+        const sortedArticles = articles.sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+        for (let i = 0; i < sortedArticles.length; i++) {
             if (processedIndices.has(i)) continue;
 
-            const currentArticle = articles[i];
+            const currentArticle = sortedArticles[i];
             const currentTitleSimple = simplifyTitle(currentArticle.title);
+            
+            // O artigo mais relevante (ou o primeiro não processado) inicia o grupo
             const currentGroup = {
                 topicTitle: currentArticle.title,
                 relevanceScore: currentArticle.relevanceScore,
@@ -57,40 +64,33 @@ export default class NewsService {
 
             processedIndices.add(i);
 
-            for (let j = i + 1; j < articles.length; j++) {
+            for (let j = i + 1; j < sortedArticles.length; j++) {
                 if (processedIndices.has(j)) continue;
 
-                const nextArticle = articles[j];
+                const nextArticle = sortedArticles[j];
                 const nextTitleSimple = simplifyTitle(nextArticle.title);
 
                 // Lógica de Agrupamento:
                 // 1. Títulos muito semelhantes (primeiras 5 palavras)
                 const isSimilarTitle = currentTitleSimple === nextTitleSimple;
                 
-                // 2. Compartilham a mesma palavra-chave de alta relevância (se houver)
-                const hasSharedKeyword = currentArticle.relevanceScore >= 90 && nextArticle.relevanceScore >= 90 && 
-                                         currentArticle.title.toLowerCase().includes(this.keywords[0]) && 
-                                         nextArticle.title.toLowerCase().includes(this.keywords[0]); // Simplificação: usa a primeira palavra-chave carregada
+                // 2. Compartilham a mesma palavra-chave de alta relevância (simplificação)
+                // Esta lógica é complexa de implementar de forma robusta sem um sistema de tags.
+                // Por enquanto, vamos focar na similaridade do título, que é mais direta.
+                // const hasSharedKeyword = ... (removido para simplificar e focar no título)
 
-                if (isSimilarTitle || hasSharedKeyword) {
+                if (isSimilarTitle) {
                     currentGroup.articles.push(nextArticle);
                     processedIndices.add(j);
-
-                    // Atualiza o título do tópico para o mais relevante
-                    if (nextArticle.relevanceScore > currentGroup.relevanceScore) {
-                        currentGroup.topicTitle = nextArticle.title;
-                        currentGroup.relevanceScore = nextArticle.relevanceScore;
-                    }
-                    if (nextArticle.relevanceScore >= 90) {
-                        currentGroup.isHighRelevance = true;
-                    }
+                    
+                    // O topicTitle e relevanceScore já estão definidos pelo artigo mais relevante (graças à ordenação inicial)
                 }
             }
             groups.push(currentGroup);
         }
 
-        // Ordena os grupos pelo score de relevância do tópico principal
-        return groups.sort((a, b) => b.relevanceScore - a.relevanceScore);
+        // O agrupamento já está ordenado implicitamente pela relevância do artigo líder.
+        return groups;
     }
 
     constructor() {
