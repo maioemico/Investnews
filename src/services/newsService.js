@@ -33,7 +33,7 @@ export default class NewsService {
         });
     }
 
-    // NOVO MÉTODO: Agrupamento por Tópico
+    // MÉTODO CORRIGIDO: Agrupamento por Tópico
     groupNewsByTopic(articles) {
         const groups = [];
         const processedIndices = new Set();
@@ -46,7 +46,9 @@ export default class NewsService {
         };
 
         // Ordena os artigos por relevância para garantir que o mais relevante seja o líder do grupo
-        const sortedArticles = articles.sort((a, b) => b.relevanceScore - a.relevanceScore);
+        // É importante que esta ordenação seja feita APENAS para o agrupamento, 
+        // pois a ordenação final por data é feita antes de chamar este método.
+        const sortedArticles = [...articles].sort((a, b) => b.relevanceScore - a.relevanceScore);
 
         for (let i = 0; i < sortedArticles.length; i++) {
             if (processedIndices.has(i)) continue;
@@ -74,11 +76,6 @@ export default class NewsService {
                 // 1. Títulos muito semelhantes (primeiras 5 palavras)
                 const isSimilarTitle = currentTitleSimple === nextTitleSimple;
                 
-                // 2. Compartilham a mesma palavra-chave de alta relevância (simplificação)
-                // Esta lógica é complexa de implementar de forma robusta sem um sistema de tags.
-                // Por enquanto, vamos focar na similaridade do título, que é mais direta.
-                // const hasSharedKeyword = ... (removido para simplificar e focar no título)
-
                 if (isSimilarTitle) {
                     currentGroup.articles.push(nextArticle);
                     processedIndices.add(j);
@@ -89,8 +86,13 @@ export default class NewsService {
             groups.push(currentGroup);
         }
 
-        // O agrupamento já está ordenado implicitamente pela relevância do artigo líder.
-        return groups;
+        // Reordena os artigos dentro de cada grupo pela data original (mais recente primeiro)
+        groups.forEach(group => {
+            group.articles = this.sortNewsByDate(group.articles);
+        });
+
+        // Ordena os grupos pelo score de relevância do tópico principal
+        return groups.sort((a, b) => b.relevanceScore - a.relevanceScore);
     }
 
     constructor() {
